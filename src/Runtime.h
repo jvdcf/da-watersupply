@@ -1,0 +1,10 @@
+#ifndef DA2324_PRJ1_G163_RUNTIME_H
+#define DA2324_PRJ1_G163_RUNTIME_H
+
+
+class Runtime {
+    // TODO
+};
+
+
+#endif //DA2324_PRJ1_G163_RUNTIME_H
