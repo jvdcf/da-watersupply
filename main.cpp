@@ -25,6 +25,6 @@ bool isFlag(const std::string &arg) {
 
 int main(int argc, char **argv) {
     // TODO
-    std::cout << "ERROR: main.cpp not implemented yet";
+    std::cout << "ERROR: main.cpp not implemented yet\n";
     return 1;
 }
