@@ -34,4 +34,5 @@ add_executable(DA2324_PRJ1_G163 main.cpp
         src/Parser.cpp src/Parser.h
         src/Runtime.cpp src/Runtime.h
         src/data/Data.cpp src/data/Data.h
+        src/CSV.cpp src/CSV.h
 )
