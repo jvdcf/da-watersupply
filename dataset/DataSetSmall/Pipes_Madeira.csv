@@ -1,4 +1,4 @@
-﻿Service_Point_A,Service_Point_B,Capacity,Direction
+Service_Point_A,Service_Point_B,Capacity,Direction
 R_1,PS_1,100,1
 R_1,PS_2,400,1
 R_1,PS_12,250,1

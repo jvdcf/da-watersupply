@@ -30,7 +30,9 @@ add_executable(DA2324_PRJ1_G163 main.cpp
         lib/Graph.h
         lib/MutablePriorityQueue.h
         lib/UFDS.cpp lib/UFDS.h
+        src/Utils.h src/Utils.cpp
         src/Parser.cpp src/Parser.h
         src/Runtime.cpp src/Runtime.h
         src/data/Data.cpp src/data/Data.h
+        src/CSV.cpp src/CSV.h
 )
