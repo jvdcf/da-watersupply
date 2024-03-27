@@ -79,8 +79,8 @@ Parser<CsvLine> parse_line() {
   return alt(std::vector<Parser<CsvValues>>({parse_sep, parse_value}))
       .take_while()
       .ends_with_fst(alt(std::vector(
-          {string_p("\n"), string_p("\r\n"), string_p("\n\r"),
-           string_p("\r")}))) // Linux/Mac, Windows, RISCOS, Legacy MacOs
+          {string_p("\r\n"), string_p("\n\r"),
+           string_p("\n"), string_p("\r")}))) // Windows, RISCOS, Unix, Legacy MacOs
       .pmap<CsvLine>([](auto p) {
         CsvLine res;
         for (CsvValues r : p) {
