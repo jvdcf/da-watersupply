@@ -69,8 +69,11 @@ Parser<CsvValues> parse_weird() {
 }
 
 Parser<CsvLine> parse_line() {
+  auto parse_BOM = string_p("\xEF\xBB\xBF").pmap<CsvValues>([](auto c) {
+    return CsvValues::Sep();
+  });
   auto parse_value = alt(std::vector<Parser<CsvValues>>(
-      {parse_flt(), parse_int(), parse_weird(), parse_str()}));
+      {parse_BOM, parse_flt(), parse_int(), parse_weird(), parse_str()}));
   auto parse_sep =
       char_p(',').pmap<CsvValues>([](auto p) { return CsvValues::Sep(); });
   return alt(std::vector<Parser<CsvValues>>({parse_sep, parse_value}))
