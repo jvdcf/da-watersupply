@@ -9,7 +9,18 @@ This project was carried out by students from group 163:
 
 # Running the project
 
-The project was developed in C++ and uses the CMake tool to compile the source code and this documentation.
+The project was developed in C++ and uses the CMake tool to compile the source code and this documentation.  
+
+This program takes as input a path to a directory containing 4 csv files with the following names:
+- `Cities.csv`
+- `Pipes.csv`
+- `Reservoir.csv`
+- `Stations.csv`
+
+Make sure that the csv files are in the correct format and that the directory path is correct before executing.
+
+> **Note:** The csv files can have different names, for example: `Reservoir.csv` can be named `Reservoirs_Madeira.csv`.
+> Despite this, it is recommended to keep the original names.
 
 ### Using the shell script
 1. Make sure that the dependencies are installed:
@@ -18,7 +29,7 @@ The project was developed in C++ and uses the CMake tool to compile the source c
     - ...
 2. Execute the script `run.sh` (located in the directory of the project) in the terminal.
 
-> **Note:** The script assumes that the csv files are in the folder `dataset/` and their names were not changed.  
+> **Note:** The script assumes that the csv files are in the folder `dataset/LargeDataSet` and their names were not changed.  
 > Feel free to change the script to suit your needs.
 
 ### Using the terminal
@@ -26,14 +37,11 @@ The project was developed in C++ and uses the CMake tool to compile the source c
 ```
 cmake -DCMAKE_BUILD_TYPE=Release CMakeLists.txt
 make -j$(nproc)
-// TODO
+./DA2324_PRJ1_G163 dataset/LargeDataSet
 ```
 
-> **Warning:** Don't forget to **change the location of the csv files in the terminal commands**.  
-> The commands above assume that the csv files are in the same directory as the executable.
-
-> **Note:** Each flag indicates a file that must be passed as an argument to the program.
-> - // TODO
+> **Warning:** Don't forget to **check the location and name of the csv files**.  
+> The commands above assume that the csv files are inside the `dataset/LargeDataSet` folder.
 
 ### Using CLion
 
@@ -54,6 +62,4 @@ make -j$(nproc)
 - Certain commands may require extended execution time in `Debug` build mode. 
   Ensure the build mode is set to `Release` prior to running the program. 
 - The integrated terminal in CLion may exhibit different behavior compared to the system terminal.
-  It is recommended to use the system terminal for running the program when feasible. 
-- This program has been exclusively tested on Linux, and thus only accepts Linux-compatible CSV files when run on Linux.
-  While it may function on Windows, this has not been verified.
+  It is recommended to use the system terminal for running the program when feasible.
