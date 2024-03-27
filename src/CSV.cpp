@@ -21,15 +21,16 @@ Parser<CsvValues> parse_int() {
 
 Parser<CsvValues> parse_flt() {
   auto fst = verifies(isdigit).take_while();
-  auto final = fst.pair(char_p('.')).pair(fst).recognize().pmap<CsvValues>([](auto inp) {
-    try {
-      double d = std::stod(inp);
-      return CsvValues::Flt(d);
-    } catch (std::exception &e) {
-      std::cout << "Failed to parse flt: " << inp << std::endl;
-      return CsvValues::Nil();
-    }
-  });
+  auto final =
+      fst.pair(char_p('.')).pair(fst).recognize().pmap<CsvValues>([](auto inp) {
+        try {
+          double d = std::stod(inp);
+          return CsvValues::Flt(d);
+        } catch (std::exception &e) {
+          std::cout << "Failed to parse flt: " << inp << std::endl;
+          return CsvValues::Nil();
+        }
+      });
   return final;
 }
 
@@ -68,13 +69,18 @@ Parser<CsvValues> parse_weird() {
 }
 
 Parser<CsvLine> parse_line() {
+  auto parse_BOM = string_p("\xEF\xBB\xBF").pmap<CsvValues>([](auto c) {
+    return CsvValues::Sep();
+  });
   auto parse_value = alt(std::vector<Parser<CsvValues>>(
-      {parse_flt(),parse_int(), parse_weird(), parse_str()}));
+      {parse_BOM, parse_flt(), parse_int(), parse_weird(), parse_str()}));
   auto parse_sep =
       char_p(',').pmap<CsvValues>([](auto p) { return CsvValues::Sep(); });
   return alt(std::vector<Parser<CsvValues>>({parse_sep, parse_value}))
       .take_while()
-      .ends_with_fst(char_p('\n'))
+      .ends_with_fst(alt(std::vector(
+          {string_p("\r\n"), string_p("\n\r"),
+           string_p("\n"), string_p("\r")}))) // Windows, RISCOS, Unix, Legacy MacOs
       .pmap<CsvLine>([](auto p) {
         CsvLine res;
         for (CsvValues r : p) {
