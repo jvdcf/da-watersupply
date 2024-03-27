@@ -13,10 +13,14 @@
 class Data {
 private:
     Graph<Info> g;
+
+    void setCities(Csv cities);
+    void setPipes(Csv pipes);
+    void setReservoirs(Csv reservoirs);
+    void setStations(Csv stations);
+
 public:
     Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations);
-
-    // TODO
 };
 
 
