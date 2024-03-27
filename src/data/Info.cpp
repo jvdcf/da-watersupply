@@ -53,3 +53,7 @@ std::optional<std::string> Info::getMunicipality() const {
       return {};
   }
 }
+
+bool Info::operator==(const Info &rhs) const {
+  return kind == rhs.kind && id == rhs.id;
+}

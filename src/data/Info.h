@@ -51,6 +51,8 @@ public:
 
   std::optional<std::string> getMunicipality() const;
 
+  bool operator==(const Info &rhs) const;
+
 private:
   Kind kind;
   uint16_t id;
