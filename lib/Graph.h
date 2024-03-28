@@ -116,8 +116,10 @@ public:
      * Returns true if successful, and false if the source or destination vertex does not exist.
      */
     bool addEdge(const T &sourc, const T &dest, double w);
+    bool addEdge(Vertex<T> *v1, Vertex<T> *v2, double w);
     bool removeEdge(const T &source, const T &dest);
     bool addBidirectionalEdge(const T &sourc, const T &dest, double w);
+    bool addBidirectionalEdge(Vertex<T> *v1, Vertex<T> *v2, double w);
 
     int getNumVertex() const;
     std::vector<Vertex<T> *> getVertexSet() const;
@@ -422,6 +424,14 @@ bool Graph<T>::addEdge(const T &sourc, const T &dest, double w) {
     return true;
 }
 
+template <class T>
+bool Graph<T>::addEdge(Vertex<T>* v1, Vertex<T>* v2, double w) {
+  if (v1 == nullptr || v2 == nullptr)
+    return false;
+  v1->addEdge(v2, w);
+  return true;
+}
+
 /*
  * Removes an edge from a graph (this).
  * The edge is identified by the source (sourc) and destination (dest) contents.
@@ -447,6 +457,17 @@ bool Graph<T>::addBidirectionalEdge(const T &sourc, const T &dest, double w) {
     e1->setReverse(e2);
     e2->setReverse(e1);
     return true;
+}
+
+template <class T>
+bool Graph<T>::addBidirectionalEdge(Vertex<T>* v1, Vertex<T>* v2, double w) {
+  if (v1 == nullptr || v2 == nullptr)
+    return false;
+  auto e1 = v1->addEdge(v2, w);
+  auto e2 = v2->addEdge(v1, w);
+  e1->setReverse(e2);
+  e2->setReverse(e1);
+  return true;
 }
 
 /****************** DFS ********************/

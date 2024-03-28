@@ -5,6 +5,7 @@
 #include <exception>
 #include <iostream>
 #include <string>
+#include <variant>
 
 Parser<CsvValues> parse_int() {
   return verifies(isdigit).take_while().recognize().pmap<CsvValues>(
@@ -35,7 +36,7 @@ Parser<CsvValues> parse_flt() {
 }
 
 Parser<CsvValues> parse_str() {
-  auto fst = verifies(isalpha);
+  auto fst = verifies([](auto c) { return c != ',' && c != '\n'; });
   auto snd =
       verifies([](auto c) { return c != ',' && c != '\n'; }).take_while();
   auto final = fst.pair(snd).recognize().pmap<CsvValues>(
@@ -99,4 +100,31 @@ Parser<Csv> parse_csv() {
     auto [head, data] = p;
     return Csv(head, data);
   });
+}
+
+std::string CsvValues::get_str() {
+  if (variant != String) {
+    std::cerr << "ERROR: " << this->display() << " is not a string" << std::endl;
+    std::exit(1);
+  } else {
+    return std::get<std::string>(this->value);
+  }
+}
+
+int64_t CsvValues::get_int() {
+  if (variant != Integer) {
+    std::cerr << "ERROR: " << this->display() << " is not an integer" << std::endl;
+    std::exit(1);
+  } else {
+    return std::get<int64_t>(this->value);
+  }
+}
+
+double CsvValues::get_flt() {
+  if (variant != Float) {
+    std::cerr << "ERROR: " << this->display() << " is not a float" << std::endl;
+    std::exit(1);
+  } else {
+    return std::get<double>(this->value);
+  }
 }
