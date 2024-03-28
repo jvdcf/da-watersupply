@@ -18,4 +18,4 @@ make -j$(nproc)
 
 clear
 echo -e "${txtgrn}[3/3] Executing DA2324_PRJ1_G163 ${txtwht}"
-./DA2324_PRJ1_G163 dataset/LargeDataSet # Path to the dataset (Change this to your path)
+./DA2324_PRJ1_G163 ../dataset/LargeDataSet # Path to the dataset (Change this to your path)
