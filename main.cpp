@@ -38,7 +38,7 @@ std::vector<std::string> getCSVPaths(std::string path) {
   std::vector<std::string> paths = {"", "", "", ""};  // {cityPath, pipePath, reservoirPath, StationPath}
 
   for (const auto& file : std::filesystem::directory_iterator(path)) {
-    std::string filePath = file.path();
+    std::string filePath = file.path().string();
     for (int i = 0; i < 4; ++i) {
       if (filePath.find(expectedFiles[i]) != std::string::npos && filePath.find(".csv") != std::string::npos) {
         if (paths[i] != "") {
