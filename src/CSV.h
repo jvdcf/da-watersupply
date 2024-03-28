@@ -19,6 +19,9 @@ public:
     Separator,
   } variant;
   CsvValues(): value(nullptr), variant(None) {};
+  std::string get_str();
+  int64_t get_int();
+  double get_flt();
   std::string display() {
     switch (variant) {
     case String:
@@ -93,6 +96,9 @@ struct Csv {
   public:
   Csv(): header(CsvLine()), data(std::vector<CsvLine>()) {};
   Csv(CsvLine head, std::vector<CsvLine> dat): header(head), data(dat) {};
+  std::vector<CsvLine> get_data() {
+    return data;
+  }
   std::string display() {
     std::string res;
     res += "Header: " + header.display() + "\n";

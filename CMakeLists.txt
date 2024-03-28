@@ -32,7 +32,8 @@ add_executable(DA2324_PRJ1_G163 main.cpp
         lib/UFDS.cpp lib/UFDS.h
         src/Utils.h src/Utils.cpp
         src/Parser.cpp src/Parser.h
-        src/Runtime.cpp src/Runtime.h
-        src/data/Data.cpp src/data/Data.h
         src/CSV.cpp src/CSV.h
+        src/data/Info.cpp src/data/Info.h
+        src/data/Data.cpp src/data/Data.h
+        src/Runtime.cpp src/Runtime.h
 )

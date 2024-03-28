@@ -5,6 +5,7 @@
 #include <exception>
 #include <iostream>
 #include <string>
+#include <variant>
 
 Parser<CsvValues> parse_int() {
   return verifies(isdigit).take_while().recognize().pmap<CsvValues>(
@@ -21,20 +22,21 @@ Parser<CsvValues> parse_int() {
 
 Parser<CsvValues> parse_flt() {
   auto fst = verifies(isdigit).take_while();
-  auto final = fst.pair(char_p('.')).pair(fst).recognize().pmap<CsvValues>([](auto inp) {
-    try {
-      double d = std::stod(inp);
-      return CsvValues::Flt(d);
-    } catch (std::exception &e) {
-      std::cout << "Failed to parse flt: " << inp << std::endl;
-      return CsvValues::Nil();
-    }
-  });
+  auto final =
+      fst.pair(char_p('.')).pair(fst).recognize().pmap<CsvValues>([](auto inp) {
+        try {
+          double d = std::stod(inp);
+          return CsvValues::Flt(d);
+        } catch (std::exception &e) {
+          std::cout << "Failed to parse flt: " << inp << std::endl;
+          return CsvValues::Nil();
+        }
+      });
   return final;
 }
 
 Parser<CsvValues> parse_str() {
-  auto fst = verifies(isalpha);
+  auto fst = verifies([](auto c) { return c != ',' && c != '\n'; });
   auto snd =
       verifies([](auto c) { return c != ',' && c != '\n'; }).take_while();
   auto final = fst.pair(snd).recognize().pmap<CsvValues>(
@@ -68,13 +70,18 @@ Parser<CsvValues> parse_weird() {
 }
 
 Parser<CsvLine> parse_line() {
+  auto parse_BOM = string_p("\xEF\xBB\xBF").pmap<CsvValues>([](auto c) {
+    return CsvValues::Sep();
+  });
   auto parse_value = alt(std::vector<Parser<CsvValues>>(
-      {parse_flt(),parse_int(), parse_weird(), parse_str()}));
+      {parse_BOM, parse_flt(), parse_int(), parse_weird(), parse_str()}));
   auto parse_sep =
       char_p(',').pmap<CsvValues>([](auto p) { return CsvValues::Sep(); });
   return alt(std::vector<Parser<CsvValues>>({parse_sep, parse_value}))
       .take_while()
-      .ends_with_fst(char_p('\n'))
+      .ends_with_fst(alt(std::vector(
+          {string_p("\r\n"), string_p("\n\r"),
+           string_p("\n"), string_p("\r")}))) // Windows, RISCOS, Unix, Legacy MacOs
       .pmap<CsvLine>([](auto p) {
         CsvLine res;
         for (CsvValues r : p) {
@@ -93,4 +100,31 @@ Parser<Csv> parse_csv() {
     auto [head, data] = p;
     return Csv(head, data);
   });
+}
+
+std::string CsvValues::get_str() {
+  if (variant != String) {
+    std::cerr << "ERROR: " << this->display() << " is not a string" << std::endl;
+    std::exit(1);
+  } else {
+    return std::get<std::string>(this->value);
+  }
+}
+
+int64_t CsvValues::get_int() {
+  if (variant != Integer) {
+    std::cerr << "ERROR: " << this->display() << " is not an integer" << std::endl;
+    std::exit(1);
+  } else {
+    return std::get<int64_t>(this->value);
+  }
+}
+
+double CsvValues::get_flt() {
+  if (variant != Float) {
+    std::cerr << "ERROR: " << this->display() << " is not a float" << std::endl;
+    std::exit(1);
+  } else {
+    return std::get<double>(this->value);
+  }
 }
