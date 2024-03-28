@@ -36,7 +36,7 @@ Parser<CsvValues> parse_flt() {
 }
 
 Parser<CsvValues> parse_str() {
-  auto fst = verifies(isalpha);
+  auto fst = verifies([](auto c) { return c != ',' && c != '\n'; });
   auto snd =
       verifies([](auto c) { return c != ',' && c != '\n'; }).take_while();
   auto final = fst.pair(snd).recognize().pmap<CsvValues>(
