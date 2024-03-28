@@ -9,19 +9,49 @@
 #include "../CSV.h"
 #include "Info.h"
 
+/**
+ * @brief Data storage and algorithms execution.
+ * @details This class is responsible for storing the data and executing the algorithms asked by the Runtime class.
+ */
 
 class Data {
 private:
-    Graph<Info> g;
+  /// Graph with the data inside Info objects.
+  Graph<Info> g;
 
-    void setCities(Csv cities);
-    void setPipes(Csv pipes);
-    void setReservoirs(Csv reservoirs);
-    void setStations(Csv stations);
+  /**
+   * @brief Sets the parsed Cities.csv in the graph.
+   */
+  void setCities(Csv cities);
+
+  /**
+   * @brief Sets the parsed Pipes.csv in the graph.
+   */
+  void setPipes(Csv pipes);
+
+  /**
+   * @brief Sets the parsed Reservoir.csv in the graph.
+   */
+  void setReservoirs(Csv reservoirs);
+
+  /**
+   * @brief Sets the parsed Stations.csv in the graph.
+   */
+  void setStations(Csv stations);
 
 public:
-    Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations);
-    std::array<int, 3> countVertexes();
+  /**
+   * @brief Constructor
+   */
+  Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations);
+
+  /**
+   * @brief Number of cities, reservoirs and pumps.
+   * @details Useful for debug.
+   * @note Time complexity: O(V) where V is the number of vertexes in the graph.
+   * @return An array with the number of cities, reservoirs and pumps vertexes, respectively.
+   */
+  std::array<int, 3> countVertexes();
 };
 
 

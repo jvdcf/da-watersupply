@@ -1,4 +1,6 @@
-As part of the first project of Algorithm Design, // TODO
+As part of the first project of Algorithm Design, the goal was to develop a tool to aid in making informed decisions
+regarding the management of a water supply network. The tool provides insights on the amount of water that can be supplied
+to each city, identifies sensitive sections of the network that are prone to failures, and more.
 
 This project was carried out by students from group 163: 
  - Maria Rabelo (up202000130@up.pt)
@@ -23,10 +25,7 @@ Make sure that the csv files are in the correct format and that the directory pa
 > Despite this, it is recommended to keep the original names.
 
 ### Using the shell script
-1. Make sure that the dependencies are installed:
-    - CMake
-    - g++
-    - ...
+1. Make sure that the C / C++ dependencies are installed on your system.
 2. Execute the script `run.sh` (located in the directory of the project) in the terminal.
 
 > **Note:** The script assumes that the csv files are in the folder `dataset/LargeDataSet` and their names were not changed.  
@@ -51,7 +50,7 @@ make -j$(nproc)
    _or_  
    Create a new configuration with the correct program arguments and working directory.  
    For example:
-    - Program arguments: `// TODO`
+    - Program arguments: `dataset/LargeDataSet`
     - Working directory: `$ProjectFileDir$`
 4. Run the configuration.
 
