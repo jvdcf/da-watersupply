@@ -120,3 +120,24 @@ std::array<int, 3> Data::countVertexes() {
   return counts;
 }
 
+std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
+  Vertex<Info> *superSource = Utils::createSuperSource(&g);
+  Vertex<Info> *superSink = Utils::createSuperSink(&g);
+  Utils::EdmondsKarp(&g, superSource, superSink);
+
+  std::vector<std::pair<uint16_t, uint32_t>> result;
+  for (Vertex<Info> *v : g.getVertexSet()) {
+    if (v->getInfo().getKind() == Info::Kind::City) {
+      uint32_t flow = 0;
+      for (Edge<Info> *e : v->getIncoming()) {
+        flow += e->getFlow();
+      }
+      result.emplace_back(v->getInfo().getId(), flow);
+    }
+  }
+
+  Utils::removeSuperSource(&g, superSource);
+  Utils::removeSuperSink(&g, superSink);
+  return result;
+}
+

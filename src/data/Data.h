@@ -52,6 +52,14 @@ public:
    * @return An array with the number of cities, reservoirs and pumps vertexes, respectively.
    */
   std::array<int, 3> countVertexes();
+
+  /**
+   * @brief Maximum amount of water that can reach each or a specific city
+   * @details Uses the Edmonds-Karp algorithm to calculate the maximum flow of the graph.
+   * @note Time complexity: O(V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
+   * @return A vector of pairs with the city id and the maximum flow that can reach it.
+   */
+  std::vector<std::pair<uint16_t, uint32_t>> maxFlowCity();
 };
 
 
