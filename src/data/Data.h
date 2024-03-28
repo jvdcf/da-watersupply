@@ -21,6 +21,7 @@ private:
 
 public:
     Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations);
+    std::array<int, 3> countVertexes();
 };
 
 

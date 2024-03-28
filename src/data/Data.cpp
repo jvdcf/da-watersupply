@@ -1,6 +1,7 @@
 #include "Data.h"
-
 #include <utility>
+
+// Constructor
 
 Data::Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations) {
   this->g = Graph<Info>();
@@ -14,6 +15,10 @@ void Data::setCities(Csv cities) {
   std::vector<CsvLine> data = cities.get_data();
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
+    if (values.empty()) {
+      std::cerr << "WARN: Empty line in Cities.csv" << std::endl;
+      continue;
+    }
 
     std::string location = values[0].get_str();
     uint32_t id = values[1].get_int();
@@ -32,6 +37,10 @@ void Data::setReservoirs(Csv reservoirs) {
   std::vector<CsvLine> data = reservoirs.get_data();
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
+    if (values.empty()) {
+      std::cerr << "WARN: Empty line in Reservoir.csv" << std::endl;
+      continue;
+    }
 
     std::string reservoir = values[0].get_str();
     std::string municipality = values[1].get_str();
@@ -50,6 +59,10 @@ void Data::setStations(Csv stations) {
   std::vector<CsvLine> data = stations.get_data();
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
+    if (values.empty()) {
+      std::cerr << "WARN: Empty line in Stations.csv" << std::endl;
+      continue;
+    }
 
     uint32_t id = values[0].get_int();
 
@@ -65,6 +78,10 @@ void Data::setPipes(Csv pipes) {
   std::vector<CsvLine> data = pipes.get_data();
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
+    if (values.empty()) {
+      std::cerr << "WARN: Empty line in Pipes.csv" << std::endl;
+      continue;
+    }
 
     std::string serviceA = values[0].get_str();
     std::string serviceB = values[1].get_str();
@@ -81,5 +98,25 @@ void Data::setPipes(Csv pipes) {
     if (bidirectional) g.addBidirectionalEdge(vertexA, vertexB, capacity);
     else g.addEdge(vertexA, vertexB, capacity);
   }
+}
+
+// Functions =================================================================================================
+
+std::array<int, 3> Data::countVertexes() {
+  std::array<int, 3> counts = {0, 0, 0};
+  for (Vertex<Info> *v : g.getVertexSet()) {
+    switch (v->getInfo().getKind()) {
+      case Info::Kind::City:
+        ++counts[0];
+        break;
+      case Info::Kind::Reservoir:
+        ++counts[1];
+        break;
+      case Info::Kind::Pump:
+        ++counts[2];
+        break;
+    }
+  }
+  return counts;
 }
 
