@@ -47,7 +47,7 @@ Vertex<Info> *Utils::findVertex(Graph<Info> &g, Info::Kind kind, uint32_t id) {
 
 void Utils::EdmondsKarp(Graph<Info> *g, Vertex<Info> *s, Vertex<Info> *t) {
   auto testAndVisit = [](std::queue< Vertex<Info>*> &q, Edge<Info> *e, Vertex<Info> *w, double residual) {
-    if (! w->isVisited() && residual > 0) {
+    if (! w->isVisited() && residual > 0 && w->isActive()) {
       w->setVisited(true);
       w->setPath(e);
       q.push(w);

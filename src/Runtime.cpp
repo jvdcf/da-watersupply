@@ -46,7 +46,9 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
               << "count\n"
               << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
               << "maxFlowCity [cityId]\n"
-              << "    Maximum amount of water that can reach each or a specific city.\n";
+              << "    Maximum amount of water that can reach each or a specific city.\n"
+              << "removablePumps\n"
+              << "    Removable pump stations, which won't affect the flow of any city.\n";
     return;
   }
 
@@ -79,6 +81,19 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
     } else std::cerr << "ERROR: Invalid number of arguments for 'maxFlowCity'.\n";
     return;
   }
+
+    if (args[0] == "removablePumps") {
+        auto removableStations = data->findRemovablePumpStations();
+        if (removableStations.empty()) {
+            std::cout << "No pump stations can be safely removed without affecting the water supply.\n";
+        } else {
+            std::cout << "Removable pump stations:\n";
+            for (const auto& station : removableStations) {
+                std::cout << Utils::parseId(Info::Kind::Pump, station.getId()) << '\n';
+            }
+        }
+        return;
+    }
 
   std::cerr << "ERROR: No such command '" << args[0] << "'.\n"
             << "Type 'help' to see the available commands.\n";

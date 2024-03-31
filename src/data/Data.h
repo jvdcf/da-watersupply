@@ -60,6 +60,14 @@ public:
    * @return A vector of pairs with the city id and the maximum flow that can reach it.
    */
   std::vector<std::pair<uint16_t, uint32_t>> maxFlowCity();
+
+    /**
+     * @brief Finds the removable pump stations.
+     * @details A pump station is removable if the removal of it does not affect the flow arriving at any city.
+     * @note Time complexity: O(V^2 * E^2) where V is the number of vertexes and E is the number of edges in the graph.
+     * @return A vector with the Info objects of the removable pump stations.
+     */
+  std::vector<Info> findRemovablePumpStations();
 };
 
 

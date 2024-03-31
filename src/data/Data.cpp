@@ -125,7 +125,7 @@ std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
   Vertex<Info> *superSink = Utils::createSuperSink(&g);
   Utils::EdmondsKarp(&g, superSource, superSink);
 
-  std::vector<std::pair<uint16_t, uint32_t>> result;
+  std::vector<std::pair<uint16_t, uint32_t>> result; // por que nao um unordered_map?
   for (Vertex<Info> *v : g.getVertexSet()) {
     if (v->getInfo().getKind() == Info::Kind::City) {
       uint32_t flow = 0;
@@ -140,4 +140,48 @@ std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
   Utils::removeSuperSink(&g, superSink);
   return result;
 }
+
+std::vector<Info> Data::findRemovablePumpStations() {
+    // run max flow city
+    std::vector<std::pair<uint16_t, uint32_t>> maxFlows = maxFlowCity();
+
+    std::vector<Info> removableStations;
+    for (Vertex<Info> *v : g.getVertexSet()) {
+        if (v->getInfo().getKind() == Info::Kind::Pump) {
+            v->setActive(false);
+            bool isRemovable = true;
+            // run max flow city again
+            std::vector<std::pair<uint16_t, uint32_t>> newMaxFlows = maxFlowCity();
+            for (const auto& flowPair : maxFlows) { // original
+                auto it = std::find_if(newMaxFlows.begin(), newMaxFlows.end(),
+                                       [&](const std::pair<uint16_t, uint32_t>& newFlowPair) {
+                                           return newFlowPair.first == flowPair.first;
+                                       });
+
+                if (it != newMaxFlows.end() && it->second != flowPair.second) {
+                    isRemovable = false;
+                    break;
+                }
+            }
+            if (isRemovable) {
+                removableStations.push_back(v->getInfo());
+            }
+            v->setActive(true);
+        }
+    }
+    return removableStations;
+}
+//
+//std::map<Info*, std::vector<std::pair<Info*, double>>> Data::evaluatePumpStationRemovalImpact() {
+//    std::map<Info*, std::vector<std::pair<Info*, double>>> impactMap;
+//    for (auto station : getPumpStations()) {
+//        station->setActive(false);
+//        auto deficits = calculateCityDeficits();
+//        if (!deficits.empty()) {
+//            impactMap[station->getInfo()] = deficits;
+//        }
+//        station->setActive(true);
+//    }
+//    return impactMap;
+//}
 
