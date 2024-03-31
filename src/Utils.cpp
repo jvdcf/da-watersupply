@@ -45,6 +45,16 @@ Vertex<Info> *Utils::findVertex(Graph<Info> &g, Info::Kind kind, uint32_t id) {
   return nullptr;
 }
 
+Vertex<Info> *Utils::findVertex(Graph<Info> &g, uint32_t id) {
+    for (Vertex<Info>* v : g.getVertexSet()) {
+        if ( v->getInfo().getId() == id) {
+            return v;
+        }
+    }
+    std::cerr << "ERROR: Could not find vertex for " << id << std::endl;
+    return nullptr;
+}
+
 void Utils::EdmondsKarp(Graph<Info> *g, Vertex<Info> *s, Vertex<Info> *t) {
   auto testAndVisit = [](std::queue< Vertex<Info>*> &q, Edge<Info> *e, Vertex<Info> *w, double residual) {
     if (! w->isVisited() && residual > 0 && w->isActive()) {

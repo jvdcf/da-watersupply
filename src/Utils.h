@@ -39,6 +39,15 @@ public:
   static Vertex<Info>* findVertex(Graph<Info> &g, Info::Kind kind, uint32_t id);
 
   /**
+   * @brief Finds a Vertex in a given graph.
+   * @note Time complexity: O(V) where V is the number of vertexes in the graph.
+   * @param g: A reference to a graph, which vertexes contain Info objects.
+   * @param id: Id number
+   * @return A pointer to the Vertex<Info> object if found, nullptr otherwise.
+   */
+  static Vertex<Info> *findVertex(Graph<Info> &g, uint32_t id);
+
+  /**
    * @brief Calculate the maximum flow of a graph using the Edmonds-Karp algorithm.
    * @details The return values are inside the graph, the vertexes contain the flow.
    * @note Time complexity: O(V * E^2) where V is the number of vertexes and E is the number of edges in the graph.

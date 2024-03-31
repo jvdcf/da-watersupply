@@ -86,7 +86,7 @@ void Data::setPipes(Csv pipes) {
     std::string serviceA = values[0].get_str();
     std::string serviceB = values[1].get_str();
     uint32_t capacity = values[2].get_int();
-    bool bidirectional = values[3].get_int();
+    bool unidirectional = values[3].get_int();
 
     std::pair<Info::Kind, uint32_t> parsedA = Utils::parseCode(serviceA);
     std::pair<Info::Kind, uint32_t> parsedB = Utils::parseCode(serviceB);
@@ -95,7 +95,7 @@ void Data::setPipes(Csv pipes) {
 
     if (vertexA == nullptr || vertexB == nullptr) continue;
 
-    if (bidirectional) g.addBidirectionalEdge(vertexA, vertexB, capacity);
+    if (!unidirectional) g.addBidirectionalEdge(vertexA, vertexB, capacity);
     else g.addEdge(vertexA, vertexB, capacity);
   }
 }
@@ -141,7 +141,7 @@ std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
   return result;
 }
 
-std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> Data::removablePumps() {
+std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> Data::removingPumps() {
     std::vector<std::pair<uint16_t, uint32_t>> maxFlows = maxFlowCity();
     std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> pumpImpactMap;
 
@@ -164,17 +164,83 @@ std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> Data::removableP
     }
     return pumpImpactMap;
 }
-//
-//std::map<Info*, std::vector<std::pair<Info*, double>>> Data::evaluatePumpStationRemovalImpact() {
-//    std::map<Info*, std::vector<std::pair<Info*, double>>> impactMap;
-//    for (auto station : getPumpStations()) {
-//        station->setActive(false);
-//        auto deficits = calculateCityDeficits();
-//        if (!deficits.empty()) {
-//            impactMap[station->getInfo()] = deficits;
-//        }
-//        station->setActive(true);
-//    }
-//    return impactMap;
-//}
+
+Edge<Info>* Data::findEdge(uint32_t srcId, uint32_t destId) {
+    Vertex<Info> *srcVertex = Utils::findVertex(g, srcId);
+    Vertex<Info> *destVertex = Utils::findVertex(g, destId);
+    if (!srcVertex || !destVertex) {
+        throw std::runtime_error("Source or destination vertex not found.");
+    }
+    for (Edge<Info> *edge: srcVertex->getAdj()) {
+        if (edge->getDest() == destVertex) {
+            return edge;
+        }
+    }
+    return nullptr;
+}
+
+//For each examined pipeline, list the affected cities displaying their codes and water supply in deficit.
+std::unordered_map<std::pair<uint16_t, uint16_t>, std::vector<std::pair<uint16_t, int>>, pair_hash> Data::removingPipes() {
+    std::vector<std::pair<uint16_t, uint32_t>> maxFlows = maxFlowCity();
+
+    for (Vertex<Info> *v : g.getVertexSet()) {
+        for (Edge<Info> *e: v->getAdj()) {
+            e->setSelected(false); // not analyzed yet
+        }
+    }
+
+    using EdgeKey = std::pair<uint16_t, uint16_t>;
+    std::unordered_map<EdgeKey, std::vector<std::pair<uint16_t, int>>, pair_hash> pipeImpactMap;
+
+    for (Vertex<Info> *v : g.getVertexSet()) {
+        for (Edge<Info> *e : v->getAdj()) {
+            if (e->isSelected()) {
+                continue;
+            }
+            // temporarily inactivate edge
+            double originalWeight = e->getWeight();
+            e->setWeight(0);
+
+            bool isBidirectional = e->getReverse() != nullptr;
+            if (isBidirectional) {
+                e->getReverse()->setWeight(0);
+            }
+
+            std::vector<std::pair<uint16_t, int>> cityDeficits;
+            std::vector<std::pair<uint16_t, uint32_t>> newMaxFlows = maxFlowCity();
+            for (const auto &[cityId, originalFlow] : maxFlows) {
+                auto it = std::find_if(newMaxFlows.begin(), newMaxFlows.end(),
+                                       [cityId](const auto &pair)
+                                       { return pair.first == cityId; });
+                if (it != newMaxFlows.end() && it->second < originalFlow) {
+                    cityDeficits.emplace_back(cityId, originalFlow - it->second);
+                }
+            }
+
+            EdgeKey key;
+            if (isBidirectional) { // order the pair
+                key = (v->getInfo().getId() < e->getDest()->getInfo().getId()) ?
+                      std::make_pair(v->getInfo().getId(), e->getDest()->getInfo().getId()) :
+                      std::make_pair(e->getDest()->getInfo().getId(), v->getInfo().getId());
+            } else {
+                key = std::make_pair(v->getInfo().getId(), e->getDest()->getInfo().getId());
+            }
+
+            pipeImpactMap[key] = cityDeficits;
+
+            e->setWeight(originalWeight);
+            e->setSelected(true);
+
+            if (isBidirectional) {
+                e->getReverse()->setWeight(originalWeight);
+                e->getReverse()->setSelected(true);
+            }
+        }
+    }
+    return pipeImpactMap;
+}
+
+
+//For each city, determine which pipelines, if ruptured, i.e., with a null flow capacity,
+// would make it impossible to deliver the desired amount of water to a given city.
 
