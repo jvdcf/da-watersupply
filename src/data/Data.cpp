@@ -141,35 +141,28 @@ std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
   return result;
 }
 
-std::vector<Info> Data::findRemovablePumpStations() {
-    // run max flow city
+std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> Data::removablePumps() {
     std::vector<std::pair<uint16_t, uint32_t>> maxFlows = maxFlowCity();
+    std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> pumpImpactMap;
 
-    std::vector<Info> removableStations;
     for (Vertex<Info> *v : g.getVertexSet()) {
         if (v->getInfo().getKind() == Info::Kind::Pump) {
             v->setActive(false);
-            bool isRemovable = true;
-            // run max flow city again
+            std::vector<std::pair<uint16_t, int>> cityDeficits;
             std::vector<std::pair<uint16_t, uint32_t>> newMaxFlows = maxFlowCity();
-            for (const auto& flowPair : maxFlows) { // original
+            for (const auto &[cityId, originalFlow] : maxFlows) {
                 auto it = std::find_if(newMaxFlows.begin(), newMaxFlows.end(),
-                                       [&](const std::pair<uint16_t, uint32_t>& newFlowPair) {
-                                           return newFlowPair.first == flowPair.first;
-                                       });
-
-                if (it != newMaxFlows.end() && it->second != flowPair.second) {
-                    isRemovable = false;
-                    break;
+                                       [cityId](const auto &pair)
+                                       { return pair.first == cityId; });
+                if (it != newMaxFlows.end() && it->second < originalFlow) {
+                    cityDeficits.emplace_back(cityId, originalFlow - it->second);
                 }
             }
-            if (isRemovable) {
-                removableStations.push_back(v->getInfo());
-            }
+            pumpImpactMap[v->getInfo()] = cityDeficits;
             v->setActive(true);
         }
     }
-    return removableStations;
+    return pumpImpactMap;
 }
 //
 //std::map<Info*, std::vector<std::pair<Info*, double>>> Data::evaluatePumpStationRemovalImpact() {

@@ -47,9 +47,11 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
               << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
               << "maxFlowCity [cityId]\n"
               << "    Maximum amount of water that can reach each or a specific city.\n"
-              << "removablePumps\n"
-              << "    Removable pump stations, which won't affect the flow of any city.\n";
-    return;
+              << "removablePumps [pumpId]\n"
+              << "    Removable pump stations, which won't affect the flow of any city.\n"
+              << "    Shows the deficit impact on cities if the specified pump were to be removed.\n";
+
+      return;
   }
 
   if (args[0] == "count") {
@@ -82,18 +84,41 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
     return;
   }
 
-    if (args[0] == "removablePumps") {
-        auto removableStations = data->findRemovablePumpStations();
-        if (removableStations.empty()) {
-            std::cout << "No pump stations can be safely removed without affecting the water supply.\n";
+if (args[0] == "removablePumps") {
+    std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> pumpImpactMap = data->removablePumps();
+    if (args.size() == 2) {
+        uint16_t pumpSelected;
+        try {
+            pumpSelected = std::stoi(args[1]);
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "ERROR: Invalid pump station id '" << args[1] << "'.\n";
+            return;
+        }
+
+        auto it = std::find_if(pumpImpactMap.begin(), pumpImpactMap.end(),
+                               [pumpSelected](const auto &pair) {
+                                   return pair.first.getId() == pumpSelected;
+                               });
+
+        if (it == pumpImpactMap.end()) {
+            std::cerr << "ERROR: Pump station id '" << args[1] << "' not found.\n";
         } else {
-            std::cout << "Removable pump stations:\n";
-            for (const auto& station : removableStations) {
-                std::cout << Utils::parseId(Info::Kind::Pump, station.getId()) << '\n';
+            std::cout << "Impact of removing Pump Station " << Utils::parseId(Info::Kind::Pump, it->first.getId()) << ":\n";
+            for (const auto &deficit : it->second) {
+                std::cout << "City " << Utils::parseId(Info::Kind::City, deficit.first) << " would have a water deficit of " << deficit.second << " units.\n";
             }
         }
-        return;
+
+    } else {
+        std::cout << "Removable pump stations without impact:\n";
+        for (const auto &pair : pumpImpactMap) {
+            if (pair.second.empty()) {
+                std::cout << Utils::parseId(Info::Kind::Pump, pair.first.getId()) << '\n';
+            }
+        }
     }
+    return;
+}
 
   std::cerr << "ERROR: No such command '" << args[0] << "'.\n"
             << "Type 'help' to see the available commands.\n";
