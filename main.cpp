@@ -38,7 +38,7 @@ std::vector<std::string> getCSVPaths(std::string path) {
     for (int i = 0; i < 4; ++i) {
       if (filePath.find(expectedFiles[i]) != std::string::npos && filePath.find(".csv") != std::string::npos) {
         if (paths[i] != "") {
-          std::cerr << "ERROR: Found multiple " << expectedFiles[i] << " files\n";
+          error("Found multiple " + expectedFiles[i] + " files");
           printError();
         }
         paths[i] = filePath;
@@ -48,7 +48,7 @@ std::vector<std::string> getCSVPaths(std::string path) {
 
   for (int i = 0; i < 4; i++) {
     if (paths[i].empty()) {
-      std::cerr << "ERROR: Missing " << expectedFiles[i] << " file\n";
+      error("Missing " + expectedFiles[i] + " file");
       printError();
     }
   }
@@ -62,7 +62,7 @@ std::vector<Csv> parseCSVs(std::vector<std::string> paths) {
     std::string fileContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     auto p = parse_csv()(fileContent);
     if (!p.has_value()) {
-      std::cerr << "ERROR: Failed to parse the csv file " << path << '\n';
+      error("Failed to parse the csv file " + path);
       printError();
     }
     auto [rest, v] = p.value();
@@ -74,7 +74,7 @@ std::vector<Csv> parseCSVs(std::vector<std::string> paths) {
 int main(int argc, char **argv) {
   if (argc != 2) printError();
   if (!std::filesystem::is_directory(argv[1])) {
-    std::cerr << "ERROR: The path provided is not a directory\n";
+    error("The path provided is not a directory");
     printError();
   }
 
