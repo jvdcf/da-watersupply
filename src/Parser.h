@@ -16,8 +16,6 @@
 template <typename O> using parsertup = std::tuple<std::string, O>;
 /**
  * @brief The result of a parser.
- * @details This class is responsible for reading the user input and calling the
- * appropriate functions.
  */
 template <typename O> using POption = std::optional<parsertup<O>>;
 /**
