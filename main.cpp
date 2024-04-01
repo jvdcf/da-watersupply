@@ -8,15 +8,11 @@
 #include <fstream>
 #include <filesystem>
 
-#include "lib/Graph.h"
-#include "lib/MutablePriorityQueue.h"
-#include "lib/UFDS.h"
+#include "src/Utils.h"
 #include "src/data/Data.h"
-#include "src/data/Info.h"
 #include "src/CSV.h"
 #include "src/Parser.h"
 #include "src/Runtime.h"
-#include "src/Utils.h"
 
 
 void printError() {
@@ -64,7 +60,7 @@ std::vector<Csv> parseCSVs(std::vector<std::string> paths) {
   for (const std::string& path: paths) {
     std::ifstream file(path);
     std::string fileContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    auto p = parse_csv().next(fileContent);
+    auto p = parse_csv()(fileContent);
     if (!p.has_value()) {
       std::cerr << "ERROR: Failed to parse the csv file " << path << '\n';
       printError();
