@@ -46,6 +46,11 @@ public:
   Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations);
 
   /**
+   * @brief Getter for the graph
+   */
+  Graph<Info> &getGraph();
+
+  /**
    * @brief Number of cities, reservoirs and pumps.
    * @details Useful for debug.
    * @note Time complexity: O(V) where V is the number of vertexes in the graph.
@@ -57,9 +62,10 @@ public:
    * @brief Maximum amount of water that can reach each or a specific city
    * @details Uses the Edmonds-Karp algorithm to calculate the maximum flow of the graph.
    * @note Time complexity: O(V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
-   * @return A vector of pairs with the city id and the maximum flow that can reach it.
+   * @param sink: A pointer to the city Vertex<Info> object. If nullptr, calculates the maximum flow for all cities.
+   * @return A pair with the city id and the maximum flow that can reach it. If sink is nullptr, the id is INT16_MAX.
    */
-  std::vector<std::pair<uint16_t, uint32_t>> maxFlowCity();
+  std::pair<uint16_t, uint32_t> maxFlowCity(Vertex<Info> *sink = nullptr);
 };
 
 

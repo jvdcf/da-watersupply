@@ -86,7 +86,7 @@ void Data::setPipes(Csv pipes) {
     std::string serviceA = values[0].get_str();
     std::string serviceB = values[1].get_str();
     uint32_t capacity = values[2].get_int();
-    bool bidirectional = values[3].get_int();
+    bool unidirectional = values[3].get_int();
 
     std::pair<Info::Kind, uint32_t> parsedA = Utils::parseCode(serviceA);
     std::pair<Info::Kind, uint32_t> parsedB = Utils::parseCode(serviceB);
@@ -95,10 +95,12 @@ void Data::setPipes(Csv pipes) {
 
     if (vertexA == nullptr || vertexB == nullptr) continue;
 
-    if (bidirectional) g.addBidirectionalEdge(vertexA, vertexB, capacity);
-    else g.addEdge(vertexA, vertexB, capacity);
+    if (unidirectional) g.addEdge(vertexA, vertexB, capacity);
+    else g.addBidirectionalEdge(vertexA, vertexB, capacity);
   }
 }
+
+Graph<Info> &Data::getGraph() {return g;}
 
 // Functions =================================================================================================
 
@@ -120,24 +122,19 @@ std::array<int, 3> Data::countVertexes() {
   return counts;
 }
 
-std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
-  Vertex<Info> *superSource = Utils::createSuperSource(&g);
-  Vertex<Info> *superSink = Utils::createSuperSink(&g);
-  Utils::EdmondsKarp(&g, superSource, superSink);
 
-  std::vector<std::pair<uint16_t, uint32_t>> result;
-  for (Vertex<Info> *v : g.getVertexSet()) {
-    if (v->getInfo().getKind() == Info::Kind::City) {
-      uint32_t flow = 0;
-      for (Edge<Info> *e : v->getIncoming()) {
-        flow += e->getFlow();
-      }
-      result.emplace_back(v->getInfo().getId(), flow);
-    }
-  }
+std::pair<uint16_t, uint32_t> Data::maxFlowCity(Vertex<Info> *sink) {
+  Vertex<Info> *superSource = Utils::createSuperSource(&g);
+  if (sink == nullptr) sink = Utils::createSuperSink(&g);
+  Utils::EdmondsKarp(&g, superSource, sink);
+
+  std::pair<uint16_t, uint32_t> result;
+  uint32_t flow = 0;
+  for (Edge<Info> *e : sink->getIncoming()) flow += e->getFlow();
+  result = {sink->getInfo().getId(), flow};
 
   Utils::removeSuperSource(&g, superSource);
-  Utils::removeSuperSink(&g, superSink);
+  if (sink->getInfo().getId() == INT16_MAX) Utils::removeSuperSink(&g, sink);
   return result;
 }
 
