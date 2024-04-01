@@ -44,7 +44,9 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
               << "help\n"
               << "    Prints this help.\n"
               << "count\n"
-              << "    Number of cities, reservoirs and pumps. Useful for debug.\n";
+              << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
+              << "maxFlowCity [cityId]\n"
+              << "    Maximum amount of water that can reach each or a specific city.\n";
     return;
   }
 
@@ -53,6 +55,28 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
     std::cout << "Cities:     " << counts[0] << '\n'
               << "Reservoirs: " << counts[1] << '\n'
               << "Pumps:      " << counts[2] << '\n';
+    return;
+  }
+
+  if (args[0] == "maxFlowCity") {
+    std::vector<std::pair<uint16_t, uint32_t>> maxFlows = data->maxFlowCity();
+
+    if (args.size() == 2) {
+      uint16_t citySelected;
+      try {citySelected = std::stoi(args[1]);}
+      catch (const std::invalid_argument& e) { std::cerr << "ERROR: Invalid city id '" << args[1] << "'.\n"; return;}
+      auto pair = std::find_if(maxFlows.begin(), maxFlows.end(),[citySelected](const std::pair<uint16_t, uint32_t>& p) {
+        return p.first == citySelected;
+      });
+      if (pair == maxFlows.end()) std::cerr << "ERROR: City id '" << args[1] << "' not found.\n";
+      else std::cout << Utils::parseId(Info::Kind::City, pair->first) << ": " << pair->second << '\n';
+
+    } else if (args.size() == 1) {
+      for (const auto &[cityId, flow]: maxFlows) {
+        std::cout << Utils::parseId(Info::Kind::City, cityId) << ": " << flow << '\n';
+      }
+
+    } else std::cerr << "ERROR: Invalid number of arguments for 'maxFlowCity'.\n";
     return;
   }
 
