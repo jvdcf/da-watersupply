@@ -59,22 +59,18 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
   }
 
   if (args[0] == "maxFlowCity") {
-    std::vector<std::pair<uint16_t, uint32_t>> maxFlows = data->maxFlowCity();
-
     if (args.size() == 2) {
       uint16_t citySelected;
       try {citySelected = std::stoi(args[1]);}
       catch (const std::invalid_argument& e) { std::cerr << "ERROR: Invalid city id '" << args[1] << "'.\n"; return;}
-      auto pair = std::find_if(maxFlows.begin(), maxFlows.end(),[citySelected](const std::pair<uint16_t, uint32_t>& p) {
-        return p.first == citySelected;
-      });
-      if (pair == maxFlows.end()) std::cerr << "ERROR: City id '" << args[1] << "' not found.\n";
-      else std::cout << Utils::parseId(Info::Kind::City, pair->first) << ": " << pair->second << '\n';
+      Vertex<Info> *city = Utils::findVertex(data->getGraph(), Info::Kind::City, citySelected);
+      if (city == nullptr) return;
+      std::pair<uint16_t, uint32_t> maxFlow = data->maxFlowCity(city);
+      std::cout << Utils::parseId(Info::Kind::City, maxFlow.first) << ": " << maxFlow.second << '\n';
 
     } else if (args.size() == 1) {
-      for (const auto &[cityId, flow]: maxFlows) {
-        std::cout << Utils::parseId(Info::Kind::City, cityId) << ": " << flow << '\n';
-      }
+      std::pair<uint16_t, uint32_t> maxFlow = data->maxFlowCity();
+      std::cout << "Max flow of the network: " << maxFlow.second << '\n';
 
     } else std::cerr << "ERROR: Invalid number of arguments for 'maxFlowCity'.\n";
     return;
