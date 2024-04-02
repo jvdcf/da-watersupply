@@ -5,7 +5,6 @@
 #include <exception>
 #include <iostream>
 #include <string>
-#include <variant>
 
 Parser<CsvValues> parse_int() {
   return verifies(isdigit).take_while().recognize().pmap<CsvValues>(
@@ -102,28 +101,25 @@ Parser<Csv> parse_csv() {
   });
 }
 
-std::string CsvValues::get_str() {
+std::optional<std::string> CsvValues::get_str() {
   if (variant != String) {
-    std::cerr << "ERROR: " << this->display() << " is not a string" << std::endl;
-    std::exit(1);
+    return {};
   } else {
     return std::get<std::string>(this->value);
   }
 }
 
-int64_t CsvValues::get_int() {
+std::optional<int64_t> CsvValues::get_int() {
   if (variant != Integer) {
-    std::cerr << "ERROR: " << this->display() << " is not an integer" << std::endl;
-    std::exit(1);
+    return {};
   } else {
     return std::get<int64_t>(this->value);
   }
 }
 
-double CsvValues::get_flt() {
+std::optional<double> CsvValues::get_flt() {
   if (variant != Float) {
-    std::cerr << "ERROR: " << this->display() << " is not a float" << std::endl;
-    std::exit(1);
+    return {};
   } else {
     return std::get<double>(this->value);
   }
