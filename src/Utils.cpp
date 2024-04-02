@@ -142,7 +142,7 @@ Vertex<Info> *Utils::createSuperSource(Graph<Info> *g) {
   Vertex<Info> *s = g->getVertexSet().back();
   for (auto v: g->getVertexSet()) {
     if (v->getInfo().getKind() == Info::Kind::Reservoir) {
-      g->addEdge(s, v, INF);
+      g->addEdge(s, v, v->getInfo().getCap().value());
     }
   }
   return s;
@@ -153,7 +153,7 @@ Vertex<Info> *Utils::createSuperSink(Graph<Info> *g) {
   Vertex<Info> *t = g->getVertexSet().back();
   for (auto v: g->getVertexSet()) {
     if (v->getInfo().getKind() == Info::Kind::City) {
-      g->addEdge(v, t, INF);
+      g->addEdge(v, t, v->getInfo().getCap().value());
     }
   }
   return t;
