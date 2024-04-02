@@ -61,11 +61,21 @@ public:
   /**
    * @brief Maximum amount of water that can reach each or a specific city
    * @details Uses the Edmonds-Karp algorithm to calculate the maximum flow of the graph.
-   * @note Time complexity: O(V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
+   * @note Time complexity: O(V * E²) where V is the number of vertexes and E is the number of edges in the graph.
    * @param sink: A pointer to the city Vertex<Info> object. If nullptr, calculates the maximum flow for all cities.
    * @return A pair with the city id and the maximum flow that can reach it. If sink is nullptr, the id is INT16_MAX.
    */
   std::pair<uint16_t, uint32_t> maxFlowCity(Vertex<Info> *sink = nullptr);
+
+  /**
+   * @brief Cities with not enough flow for their demand
+   * @details Calculates the maximum flow for every city and selects the ones with flow below the demand.
+   * @note Time complexity: O(C * V * E²) where C is the number of cities, V is the number of vertexes
+   * and E is the number of edges in the graph.
+   * @return A vector of pairs with the city id and the amount of water in deficit.
+   * If empty, it means that the network configuration meets the water needs for all of its customer.
+   */
+  std::vector<std::pair<uint16_t, int32_t>> meetsWaterNeeds();
 };
 
 
