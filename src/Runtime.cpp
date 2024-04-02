@@ -2,9 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-Runtime::Runtime(Data *d) {
-  this->data = d;
-}
+Runtime::Runtime(Data *d) { this->data = d; }
 
 [[noreturn]] void Runtime::run() {
   std::cout << "Welcome to Water Supply Management.\n"
@@ -26,27 +24,30 @@ Runtime::Runtime(Data *d) {
       args.push_back(buf);
     }
 
-    if(args.empty()) continue;
+    if (args.empty())
+      continue;
     processArgs(args);
   }
 }
 
-void Runtime::processArgs(const std::vector<std::string>& args) {
+void Runtime::processArgs(const std::vector<std::string> &args) {
   if (args[0] == "quit") {
     std::cout << "Quitting...\n";
     exit(0);
   }
 
   if (args[0] == "help") {
-    std::cout << "Available commands:\n"
-              << "quit\n"
-              << "    Quits this program.\n"
-              << "help\n"
-              << "    Prints this help.\n"
-              << "count\n"
-              << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
-              << "maxFlowCity [cityId]\n"
-              << "    Maximum amount of water that can reach each or a specific city.\n";
+    std::cout
+        << "Available commands:\n"
+        << "quit\n"
+        << "    Quits this program.\n"
+        << "help\n"
+        << "    Prints this help.\n"
+        << "count\n"
+        << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
+        << "maxFlowCity [cityId]\n"
+        << "    Maximum amount of water that can reach each or a specific "
+           "city.\n";
     return;
   }
 
@@ -62,7 +63,7 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
     if (args.size() == 2) {
       uint16_t citySelected;
       try {citySelected = std::stoi(args[1]);}
-      catch (const std::invalid_argument& e) { std::cerr << "ERROR: Invalid city id '" << args[1] << "'.\n"; return;}
+      catch (const std::invalid_argument& e) {error("Invalid city id '" + args[1] + "'."); return;}
       Vertex<Info> *city = Utils::findVertex(data->getGraph(), Info::Kind::City, citySelected);
       if (city == nullptr) return;
       std::pair<uint16_t, uint32_t> maxFlow = data->maxFlowCity(city);
@@ -72,10 +73,10 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
       std::pair<uint16_t, uint32_t> maxFlow = data->maxFlowCity();
       std::cout << "Max flow of the network: " << maxFlow.second << '\n';
 
-    } else std::cerr << "ERROR: Invalid number of arguments for 'maxFlowCity'.\n";
+    } else error("Invalid number of arguments for 'maxFlowCity'.");
     return;
   }
-
-  std::cerr << "ERROR: No such command '" << args[0] << "'.\n"
-            << "Type 'help' to see the available commands.\n";
+  
+  error("No such command '" + args[0] + "'.");
+  info("Type 'help' to see the available commands.");
 }

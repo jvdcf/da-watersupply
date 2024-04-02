@@ -21,20 +21,18 @@ Parser<std::string> string_p(std::string s) {
   for (auto c : s) {
     pp.push_back(char_p(c));
   }
-  return Parser<std::string>([pp](auto other) -> POption<std::string> {
-    std::string res;
+  return Parser<std::string>([s, pp](auto other) -> POption<std::string> {
     std::string o = other;
     for (auto p : pp) {
-      auto resu = p.next(o);
+      auto resu = p(o);
       if (!resu.has_value()) {
         return {};
       } else {
         auto [in, out] = resu.value();
         o = in;
-        res.push_back(out);
       }
     }
-    return std::tuple(o, res);
+    return std::tuple(o, s);
   });
 }
 
