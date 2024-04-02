@@ -16,7 +16,7 @@ void Data::setCities(Csv cities) {
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
     if (values.empty()) {
-      std::cerr << "WARN: Empty line in Cities.csv" << std::endl;
+      warning("Empty line in Cities.csv");
       continue;
     }
     if (!values[0].get_str().has_value()) panic("Incorrect type: Expected string, but found " + values[0].display());
@@ -41,7 +41,7 @@ void Data::setReservoirs(Csv reservoirs) {
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
     if (values.empty()) {
-      std::cerr << "WARN: Empty line in Reservoir.csv" << std::endl;
+      warning("Empty line in Reservoir.csv");
       continue;
     }
     
@@ -67,7 +67,7 @@ void Data::setStations(Csv stations) {
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
     if (values.empty()) {
-      std::cerr << "WARN: Empty line in Stations.csv" << std::endl;
+      warning("Empty line in Stations.csv");
       continue;
     }
 
@@ -87,7 +87,7 @@ void Data::setPipes(Csv pipes) {
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
     if (values.empty()) {
-      std::cerr << "WARN: Empty line in Pipes.csv" << std::endl;
+      warning("Empty line in Pipes.csv");
       continue;
     }
 
