@@ -59,13 +59,12 @@ public:
   std::array<int, 3> countVertexes();
 
   /**
-   * @brief Maximum amount of water that can reach each or a specific city
+   * @brief Maximum amount of water that can reach every city of the graph
    * @details Uses the Edmonds-Karp algorithm to calculate the maximum flow of the graph.
    * @note Time complexity: O(V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
-   * @param sink: A pointer to the city Vertex<Info> object. If nullptr, calculates the maximum flow for all cities.
-   * @return A pair with the city id and the maximum flow that can reach it. If sink is nullptr, the id is INT16_MAX.
+   * @return A map with the city id and the maximum flow that can reach it.
    */
-  std::pair<uint16_t, uint32_t> maxFlowCity(Vertex<Info> *sink = nullptr);
+  std::unordered_map<uint16_t, uint32_t> maxFlowCity();
 };
 
 
