@@ -70,12 +70,12 @@ public:
   /**
    * @brief Cities with not enough flow for their demand
    * @details Calculates the maximum flow for every city and selects the ones with flow below the demand.
-   * @note Time complexity: O(C * V * E²) where C is the number of cities, V is the number of vertexes
+   * @note Time complexity: O(V * E²) where V is the number of vertexes
    * and E is the number of edges in the graph.
-   * @return A vector of pairs with the city id and the amount of water in deficit.
+   * @return A vector of pairs with the city Info and the amount of water in deficit.
    * If empty, it means that the network configuration meets the water needs for all of its customer.
    */
-  std::vector<std::pair<uint16_t, int32_t>> meetsWaterNeeds();
+  std::vector<std::pair<Info, int32_t>> meetsWaterNeeds();
 };
 
 

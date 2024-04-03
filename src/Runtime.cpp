@@ -81,8 +81,12 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
 
   if (args[0] == "needsMet") {
     if (args.size() > 2) {error("Invalid number of arguments for 'needsMet'."); return;}
-    for (auto pair: data->meetsWaterNeeds()) {
-      std::cout << Utils::parseId(Info::Kind::City, pair.first) << ": " << pair.second << '\n';
+    auto result = data->meetsWaterNeeds();
+    if (result.empty()) std::cout << "This network configuration meets the water needs of its costumers.\n";
+    else std::cout << "Cities with not enough flow for their demand:\n";
+    for (const auto& pair: result) {
+      std::cout << Utils::parseId(Info::Kind::City, pair.first.getId()) << ": " << pair.second
+                << " (Flow: " << pair.first.getCap().value() + pair.second << '/' << pair.first.getCap().value() << ")\n";
     }
     return;
   }
