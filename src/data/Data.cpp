@@ -136,18 +136,22 @@ std::array<int, 3> Data::countVertexes() {
 }
 
 
-std::pair<uint16_t, uint32_t> Data::maxFlowCity(Vertex<Info> *sink) {
+std::unordered_map<uint16_t, uint32_t> Data::maxFlowCity() {
   Vertex<Info> *superSource = Utils::createSuperSource(&g);
-  if (sink == nullptr) sink = Utils::createSuperSink(&g);
-  Utils::EdmondsKarp(&g, superSource, sink);
+  Vertex<Info> *superSink = Utils::createSuperSink(&g);
 
-  std::pair<uint16_t, uint32_t> result;
-  uint32_t flow = 0;
-  for (Edge<Info> *e : sink->getIncoming()) flow += e->getFlow();
-  result = {sink->getInfo().getId(), flow};
+  Utils::EdmondsKarp(&g, superSource, superSink);
+
+  std::unordered_map<uint16_t, uint32_t> result;
+  for (Vertex<Info>* v: g.getVertexSet()) {
+    if (v->getInfo().getKind() != Info::Kind::City) continue;
+    uint32_t flow = 0;
+    for (Edge<Info> *e: v->getIncoming()) flow += round(e->getFlow());
+    result.insert({v->getInfo().getId(), flow});
+  }
 
   Utils::removeSuperSource(&g, superSource);
-  if (sink->getInfo().getId() == INT16_MAX) Utils::removeSuperSink(&g, sink);
+  Utils::removeSuperSink(&g, superSink);
   return result;
 }
 
