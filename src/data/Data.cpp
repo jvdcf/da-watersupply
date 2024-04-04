@@ -165,8 +165,8 @@ std::vector<std::pair<Info, int32_t>> Data::meetsWaterNeeds() {
     if (v->getInfo().getKind() != Info::Kind::City) continue;
     double flow = 0;
     for (Edge<Info> *e : v->getIncoming()) flow += e->getFlow();
-    int32_t deficit = round(flow - v->getInfo().getCap().value());
-    if (deficit < 0) {
+    int32_t deficit = round(v->getInfo().getCap().value() - flow);
+    if (deficit > 0) {
       result.emplace_back(v->getInfo(), deficit);
     }
   }
