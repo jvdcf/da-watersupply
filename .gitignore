@@ -51,4 +51,6 @@ Makefile
 CMakeFiles/
 bin/
 1
-
+html/
+latex/
+.cmake/
