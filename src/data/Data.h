@@ -107,7 +107,7 @@ public:
      * @note Time complexity: O((V+E) * V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
      * @return A map with the pair of the source and destination vertexes of the removed pipes and a vector of pairs with the city id and the resulting flow.
      */
-    std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<uint16_t, int>>, pair_hash>
+    std::unordered_map<std::pair<std::string, std::string>, std::unordered_map<uint16_t, uint32_t>, pair_hash>
     removingPipes();
 };
 

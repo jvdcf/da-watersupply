@@ -86,8 +86,8 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
   }
 
     if (args[0] == "removingPumps") {
-        std::vector<std::pair<uint16_t, uint32_t>> maxFlows = data->maxFlowCity();
-        std::unordered_map<Info, std::vector<std::pair<uint16_t, uint32_t>>> newFlows = data->removingPumps();
+        std::unordered_map<uint16_t, uint32_t> maxFlows = data->maxFlowCity();
+        std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>> newFlows = data->removingPumps();
         if (args.size() == 2) {
             uint16_t pumpSelected;
             try {
@@ -118,16 +118,11 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
                     auto cityId = cityFlow.first;
                     auto newFlow = cityFlow.second;
 
-                    // Find original flow
-                    auto itCity = std::find_if(maxFlows.begin(), maxFlows.end(),
-                                               [cityId](const auto &pair) { return pair.first == cityId; });
-
-                    if (itCity != maxFlows.end()) {
-                        if (newFlow < itCity->second) {
-                            // at least one city was affected
-                            affectsFlow = true;
-                            break;
-                        }
+                    uint32_t oldFlow = maxFlows[cityId];
+                    if (newFlow != oldFlow) {
+                          // at least one city was affected
+                          affectsFlow = true;
+                          break;
                     }
                 }
 
@@ -140,8 +135,8 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
     }
 
     if (args[0] == "removingPipes") {
-        std::vector<std::pair<uint16_t, uint32_t>> maxFlows = data->maxFlowCity();
-        std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<uint16_t, int>>, pair_hash> removingPipesImpact = data->removingPipes();
+        std::unordered_map<uint16_t, uint32_t> maxFlows = data->maxFlowCity();
+        std::unordered_map<std::pair<std::string, std::string>, std::unordered_map<uint16_t, uint32_t>, pair_hash> removingPipesImpact = data->removingPipes();
 
         if (removingPipesImpact.empty()) {
             std::cout << "No pipes found.\n";
@@ -182,17 +177,17 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
             }
             if (it != removingPipesImpact.end()){
                 std::cout << "Impact of removing Pipeline from " << codeA << " to " << codeB << ":\n";
-                std::cout << "City | Old Flow | New Flow | Deficit\n";
+                std::cout << "City | Old Flow | New Flow | Difference\n";
                 for (const auto &cityFlow : it->second) {
                     auto cityId = cityFlow.first;
                     auto newFlow = cityFlow.second;
                     auto itCity = std::find_if(maxFlows.begin(), maxFlows.end(),
                                            [cityId](const auto
                                              &pair) { return pair.first == cityId; });
-                    unsigned int deficit = itCity->second - newFlow;
-                    if (deficit > 0)
+                    int difference = newFlow - itCity->second;
+                    if (difference != 0)
                         std::cout << Utils::parseId(Info::Kind::City, cityFlow.first) << "  |  "
-                        << itCity->second << "         " << cityFlow.second << "        " << deficit << std::endl;
+                        << itCity->second << "         " << cityFlow.second << "        " << difference << std::endl;
                 }
             }
         } else if (args.size() == 1) {
@@ -205,14 +200,11 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
                     auto newFlow = cityFlow.second;
 
                     // Find original flow
-                    auto itCity = std::find_if(maxFlows.begin(), maxFlows.end(),
-                                               [cityId](const auto &pair) { return pair.first == cityId; });
-                    if (itCity != maxFlows.end()) {
-                        if (newFlow < itCity->second) {
-                            // at least one city was affected
-                            affectsFlow = true;
-                            break;
-                        }
+                    unsigned int oldFlow = maxFlows[cityId];
+                    if (newFlow != oldFlow) {
+                      // at least one city was affected
+                      affectsFlow = true;
+                      break;
                     }
                 }
                 if (!affectsFlow) {
@@ -220,7 +212,7 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
                     ++removablePipesCount;
                 }
             }
-            std::cout << "Found " << removablePipesCount << " removable pipelines.\n";
+            std::cout << "Found " << removablePipesCount << " pipelines that won't affect the flow.\n";
         } else {
             std::cerr << "ERROR: Command 'removingPipes' requires either no arguments or two arguments: [codeA] [codeB].\n";
         }

@@ -155,8 +155,8 @@ std::unordered_map<uint16_t, uint32_t> Data::maxFlowCity() {
   return result;
 }
 
-std::unordered_map<Info, std::vector<std::pair<uint16_t, uint32_t>>> Data::removingPumps() {
-    std::unordered_map<Info, std::vector<std::pair<uint16_t, uint32_t>>> pumpImpactMap;
+std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>> Data::removingPumps() {
+    std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>> pumpImpactMap;
     for (Vertex<Info> *v : g.getVertexSet()) {
         if (v->getInfo().getKind() == Info::Kind::Pump) {
             v->setActive(false);
@@ -185,8 +185,8 @@ Edge<Info>* Data::findEdge(Vertex<Info>* vertexA, Vertex<Info>* vertexB) {
 }
 
 //For each examined pipeline, list the affected cities displaying their codes and water supply in deficit.
-std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<uint16_t, int>>, pair_hash> Data::removingPipes() {
-    std::vector<std::pair<uint16_t, uint32_t>> maxFlows = maxFlowCity();
+std::unordered_map<std::pair<std::string, std::string>, std::unordered_map<uint16_t, uint32_t>, pair_hash> Data::removingPipes() {
+    std::unordered_map<uint16_t, uint32_t> maxFlows = maxFlowCity();
 
     for (Vertex<Info> *v : g.getVertexSet()) {
         for (Edge<Info> *e: v->getAdj()) {
@@ -195,7 +195,7 @@ std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<ui
     }
 
     using EdgeKey = std::pair<std::string, std::string>;
-    std::unordered_map<EdgeKey, std::vector<std::pair<uint16_t, int>>, pair_hash> pipeImpactMap;
+    std::unordered_map<EdgeKey, std::unordered_map<uint16_t, uint32_t>, pair_hash> pipeImpactMap;
 
     for (Vertex<Info> *v : g.getVertexSet()) {
         for (Edge<Info> *e : v->getAdj()) {
@@ -211,16 +211,7 @@ std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<ui
                 e->getReverse()->setWeight(0);
             }
 
-            std::vector<std::pair<uint16_t, int>> newFlows;
-            std::vector<std::pair<uint16_t, uint32_t>> newMaxFlows = maxFlowCity();
-            for (const auto &[cityId, originalFlow] : maxFlows) {
-                auto it = std::find_if(newMaxFlows.begin(), newMaxFlows.end(),
-                                       [cityId](const auto &pair)
-                                       { return pair.first == cityId; });
-                if (it != newMaxFlows.end()) {
-                    newFlows.emplace_back(cityId,  it->second);
-                }
-            }
+            std::unordered_map<uint16_t, uint32_t> newMaxFlows = maxFlowCity();
 
             EdgeKey key;
             std::string codeA = Utils::parseId(v->getInfo().getKind(), v->getInfo().getId());
@@ -234,7 +225,7 @@ std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<ui
                 key = std::make_pair(codeA, codeB);
             }
 
-            pipeImpactMap[key] = newFlows;
+            pipeImpactMap[key] = newMaxFlows;
 
             e->setWeight(originalWeight);
             e->setSelected(true);
