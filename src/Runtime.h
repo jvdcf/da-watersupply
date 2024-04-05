@@ -8,7 +8,6 @@
 #include <cctype>
 #include <cstdint>
 #include <exception>
-#include <expected>
 #include <optional>
 #include <string>
 #include <tuple>
