@@ -149,5 +149,13 @@ private:
   bool is_active;
 };
 
+/// Hash function for Info
+namespace std {
+    template<> struct hash<Info> {
+        size_t operator()(const Info& info) const noexcept {
+            return hash<uint16_t>()(info.getId()) ^ (hash<int>()(info.getKind()) << 1);
+        }
+    };
+}
 
 #endif //DA2324_PRJ1_G163_INFO_H

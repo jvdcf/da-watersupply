@@ -33,19 +33,23 @@ Runtime::Runtime(Data *d) { this->data = d; }
 }
 
 void Runtime::printHelp() {
-
   std::cout << "Available commands:\n"
-            << "quit\n"
-            << "    Quits this program.\n"
-            << "help\n"
-            << "    Prints this help.\n"
-            << "count\n"
-            << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
-            << "maxFlowCity [cityId]\n"
-            << "    Maximum amount of water that can reach each or a specific "
-               "city.\n"
-            << "needsMet\n"
-            << "    Cities with not enough flow for their demand" << std::endl;
+              << "quit\n"
+              << "    Quits this program.\n"
+              << "help\n"
+              << "    Prints this help.\n"
+              << "count\n"
+              << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
+              << "maxFlowCity [cityId]\n"
+              << "    Maximum amount of water that can reach each or a specific city.\n"
+              << "removingPumps [pumpId]\n"
+              << "    Removable pump stations, which won't affect the flow of any city.\n"
+              << "    Shows the impact on cities if the specified pump were to be removed.\n"
+              << "removingPipes [srcCode] [destCode]\n"
+              << "    Removable pipelines, which won't affect the flow of any city.\n"
+              << "    Shows the impact on cities if the specified pipeline were to be removed.\n";
+              << "needsMet\n"
+              << "    Cities with not enough flow for their demand" << std::endl;    
 }
 
 void Runtime::handleQuit() {
@@ -147,5 +151,139 @@ void Runtime::processArgs(std::string args) {
     break;
   }
 
+    if (args[0] == "removingPumps") {
+        std::unordered_map<uint16_t, uint32_t> maxFlows = data->maxFlowCity();
+        std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>> newFlows = data->removingPumps();
+        if (args.size() == 2) {
+            uint16_t pumpSelected;
+            try {
+                pumpSelected = std::stoi(args[1]);
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "ERROR: Invalid pump station id '" << args[1] << "'.\n";
+                return;
+            }
+
+            Vertex<Info>* pumpVertex = data->findVertex(Info::Kind::Pump, pumpSelected);
+
+            std::cout << "Impact of removing Pump Station " << Utils::parseId(Info::Kind::Pump, pumpSelected) << ":\n";
+            std::cout << "City | Old Flow | New Flow | Difference\n";
+            for (const auto &cityFlow : newFlows[pumpVertex->getInfo()]) {
+              auto cityId = cityFlow.first;
+              auto newFlow = cityFlow.second;
+              auto oldFlow = maxFlows[cityId];
+              int difference= newFlow - oldFlow;
+              if (difference != 0)
+                std::cout << Utils::parseId(Info::Kind::City, cityFlow.first) << "  |  "
+                          << oldFlow << "         " << cityFlow.second << "        " << difference << std::endl;
+            }
+        } else {
+            std::cout << "Removable pump stations without impact:\n";
+            for (const auto &pumpImpact : newFlows) {
+                bool affectsFlow = false;
+                for (const auto &cityFlow : pumpImpact.second) {
+                    auto cityId = cityFlow.first;
+                    auto newFlow = cityFlow.second;
+
+                    uint32_t oldFlow = maxFlows[cityId];
+                    if (newFlow != oldFlow) {
+                          // at least one city was affected
+                          affectsFlow = true;
+                          break;
+                    }
+                }
+
+                if (!affectsFlow) {
+                    std::cout << Utils::parseId(Info::Kind::Pump, pumpImpact.first.getId())  << std::endl;
+                }
+            }
+        }
+        return;
+    }
+
+    if (args[0] == "removingPipes") {
+        std::unordered_map<uint16_t, uint32_t> maxFlows = data->maxFlowCity();
+        std::unordered_map<std::pair<std::string, std::string>, std::unordered_map<uint16_t, uint32_t>, pair_hash> removingPipesImpact = data->removingPipes();
+
+        if (removingPipesImpact.empty()) {
+            std::cout << "No pipes found.\n";
+            return;
+        }
+        if (args.size() == 3) {
+            Vertex<Info> *vertexA;
+            Vertex<Info> *vertexB;
+            std::string codeA;
+            std::string codeB;
+            try {
+                std::pair<Info::Kind, uint32_t> parsedA = Utils::parseCode(args[1]);
+                vertexA = data->findVertex(parsedA.first, parsedA.second);
+                codeA = Utils::parseId(vertexA->getInfo().getKind(), vertexA->getInfo().getId());
+
+                std::pair<Info::Kind, uint32_t> parsedB = Utils::parseCode(args[2]);
+                vertexB = data->findVertex(parsedB.first, parsedB.second);
+                codeB = Utils::parseId(vertexB->getInfo().getKind(), vertexB->getInfo().getId());
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "ERROR: Invalid codes.\n";
+                return;
+            }
+
+            std::pair<std::string, std::string> pipeId = std::make_pair(codeA, codeB);
+            auto it = removingPipesImpact.find(pipeId);
+
+            if (it == removingPipesImpact.end()) {
+                std::cout << "The key " << codeA << " to " << codeB << " was not found.\n";
+                auto edge = Data::findEdge(vertexA, vertexB);
+                if (edge != nullptr) {
+                    if (edge->getReverse() != nullptr) { // the edge is bidirectional
+                        std::cout << "Bidirectional edge found. Trying reverse order.\n";
+                        pipeId = std::make_pair(codeB, codeA);
+                        it = removingPipesImpact.find(pipeId);
+                    }
+                }
+                else std::cerr << "ERROR: Pipeline between " << codeA << " and " << codeB << " not found.\n";
+            }
+            if (it != removingPipesImpact.end()){
+                std::cout << "Impact of removing Pipeline from " << codeA << " to " << codeB << ":\n";
+                std::cout << "City | Old Flow | New Flow | Difference\n";
+                for (const auto &cityFlow : it->second) {
+                    auto cityId = cityFlow.first;
+                    auto newFlow = cityFlow.second;
+                    auto itCity = std::find_if(maxFlows.begin(), maxFlows.end(),
+                                           [cityId](const auto
+                                             &pair) { return pair.first == cityId; });
+                    int difference = newFlow - itCity->second;
+                    if (difference != 0)
+                        std::cout << Utils::parseId(Info::Kind::City, cityFlow.first) << "  |  "
+                        << itCity->second << "         " << cityFlow.second << "        " << difference << std::endl;
+                }
+            }
+        } else if (args.size() == 1) {
+            int removablePipesCount = 0;
+            std::cout << "Removable pipelines without impact:\n";
+            for (const auto& [pipeId, cityFlows] : removingPipesImpact) {
+                bool affectsFlow = false;
+                for (const auto& cityFlow : cityFlows) {
+                    auto cityId = cityFlow.first;
+                    auto newFlow = cityFlow.second;
+
+                    // Find original flow
+                    unsigned int oldFlow = maxFlows[cityId];
+                    if (newFlow != oldFlow) {
+                      // at least one city was affected
+                      affectsFlow = true;
+                      break;
+                    }
+                }
+                if (!affectsFlow) {
+                    std::cout << pipeId.first << " to " << pipeId.second << '\n';
+                    ++removablePipesCount;
+                }
+            }
+            std::cout << "Found " << removablePipesCount << " pipelines that won't affect the flow.\n";
+        } else {
+            std::cerr << "ERROR: Command 'removingPipes' requires either no arguments or two arguments: [codeA] [codeB].\n";
+        }
+        return;
+    }
+  
   info("Type 'help' to see the available commands.");
 }

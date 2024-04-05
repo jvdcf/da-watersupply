@@ -39,6 +39,7 @@ public:
    */
   static Vertex<Info>* findVertex(Graph<Info> &g, Info::Kind kind, uint32_t id);
 
+
   /**
    * @brief Calculate the maximum flow of a graph using the Edmonds-Karp algorithm.
    * @details The return values are inside the graph, the vertexes contain the flow.

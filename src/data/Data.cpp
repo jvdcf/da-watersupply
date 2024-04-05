@@ -121,10 +121,8 @@ void Data::setPipes(Csv pipes) {
     if (vertexA == nullptr || vertexB == nullptr)
       continue;
 
-    if (unidirectional)
-      g.addEdge(vertexA, vertexB, capacity);
-    else
-      g.addBidirectionalEdge(vertexA, vertexB, capacity);
+    if (!unidirectional) g.addBidirectionalEdge(vertexA, vertexB, capacity);
+    else g.addEdge(vertexA, vertexB, capacity);
   }
 }
 
@@ -218,4 +216,92 @@ std::vector<std::pair<Info, int32_t>> Data::meetsWaterNeeds() {
   Utils::removeSuperSink(&g, superSink);
   return result;
 }
+
+std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>> Data::removingPumps() {
+    std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>> pumpImpactMap;
+    for (Vertex<Info> *v : g.getVertexSet()) {
+        if (v->getInfo().getKind() == Info::Kind::Pump) {
+            v->setActive(false);
+            std::unordered_map<uint16_t, uint32_t> newFlows = maxFlowCity();
+            pumpImpactMap[v->getInfo()] = newFlows;
+            v->setActive(true);
+        }
+    }
+    return pumpImpactMap;
+}
+
+Vertex<Info>* Data::findVertex(Info::Kind kind, uint32_t id){
+    return Utils::findVertex(g, kind, id);
+}
+
+Edge<Info>* Data::findEdge(Vertex<Info>* vertexA, Vertex<Info>* vertexB) {
+    if (!vertexA || !vertexB) {
+        throw std::runtime_error("Source or destination vertex not found.");
+    }
+    for (Edge<Info> *edge: vertexA->getAdj()) {
+        if (edge->getDest() == vertexB) {
+            return edge;
+        }
+    }
+    return nullptr;
+}
+
+//For each examined pipeline, list the affected cities displaying their codes and water supply in deficit.
+std::unordered_map<std::pair<std::string, std::string>, std::unordered_map<uint16_t, uint32_t>, pair_hash> Data::removingPipes() {
+    std::unordered_map<uint16_t, uint32_t> maxFlows = maxFlowCity();
+
+    for (Vertex<Info> *v : g.getVertexSet()) {
+        for (Edge<Info> *e: v->getAdj()) {
+            e->setSelected(false); // not analyzed yet
+        }
+    }
+
+    using EdgeKey = std::pair<std::string, std::string>;
+    std::unordered_map<EdgeKey, std::unordered_map<uint16_t, uint32_t>, pair_hash> pipeImpactMap;
+
+    for (Vertex<Info> *v : g.getVertexSet()) {
+        for (Edge<Info> *e : v->getAdj()) {
+            if (e->isSelected()) {
+                continue;
+            }
+            // temporarily inactivate edge
+            double originalWeight = e->getWeight();
+            e->setWeight(0);
+
+            bool isBidirectional = e->getReverse() != nullptr;
+            if (isBidirectional) {
+                e->getReverse()->setWeight(0);
+            }
+
+            std::unordered_map<uint16_t, uint32_t> newMaxFlows = maxFlowCity();
+
+            EdgeKey key;
+            std::string codeA = Utils::parseId(v->getInfo().getKind(), v->getInfo().getId());
+            std::string codeB = Utils::parseId(e->getDest()->getInfo().getKind(), e->getDest()->getInfo().getId());
+
+            if (isBidirectional) { // order the pair
+                key = (codeA < codeB) ?
+                      std::make_pair(codeA, codeB) :
+                      std::make_pair(codeB, codeA);
+            } else {
+                key = std::make_pair(codeA, codeB);
+            }
+
+            pipeImpactMap[key] = newMaxFlows;
+
+            e->setWeight(originalWeight);
+            e->setSelected(true);
+
+            if (isBidirectional) {
+                e->getReverse()->setWeight(originalWeight);
+                e->getReverse()->setSelected(true);
+            }
+        }
+    }
+    return pipeImpactMap;
+}
+
+
+//For each city, determine which pipelines, if ruptured, i.e., with a null flow capacity,
+// would make it impossible to deliver the desired amount of water to a given city.
 
