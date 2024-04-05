@@ -61,14 +61,15 @@ public:
   /**
    * @brief Maximum amount of water that can reach every city of the graph
    * @details Uses the Edmonds-Karp algorithm to calculate the maximum flow of the graph.
-<<<<<<< HEAD
    * @note Time complexity: O(V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
    * @return A map with the city id and the maximum flow that can reach it.
    */
   std::unordered_map<uint16_t, uint32_t> maxFlowCity();
+
   
 
   std::vector<std::tuple<uint16_t,uint32_t,uint32_t>> removeReservoir(uint16_t id);
+
 
   /**
    * @brief Cities with not enough flow for their demand
