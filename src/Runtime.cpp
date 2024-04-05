@@ -47,7 +47,9 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
         << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
         << "maxFlowCity [cityId]\n"
         << "    Maximum amount of water that can reach each or a specific "
-           "city.\n";
+           "city.\n"
+        << "needsMet\n"
+        << "    Cities with not enough flow for their demand";
     return;
   }
 
@@ -78,6 +80,18 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
       std::cout << "Max flow of the network: " << sumMaxFlow << '\n';
 
     } else error("Invalid number of arguments for 'maxFlowCity'.");
+    return;
+  }
+
+  if (args[0] == "needsMet") {
+    if (args.size() > 2) {error("Invalid number of arguments for 'needsMet'."); return;}
+    auto result = data->meetsWaterNeeds();
+    if (result.empty()) std::cout << "This network configuration meets the water needs of its costumers.\n";
+    else std::cout << "Cities with not enough flow for their demand:\n";
+    for (const auto& pair: result) {
+      std::cout << Utils::parseId(Info::Kind::City, pair.first.getId()) << ": " << (pair.second * (-1))
+                << " (Flow: " << pair.first.getCap().value() - pair.second << '/' << pair.first.getCap().value() << ")\n";
+    }
     return;
   }
   

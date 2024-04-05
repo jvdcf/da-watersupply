@@ -155,3 +155,24 @@ std::unordered_map<uint16_t, uint32_t> Data::maxFlowCity() {
   return result;
 }
 
+std::vector<std::pair<Info, int32_t>> Data::meetsWaterNeeds() {
+  std::vector<std::pair<Info, int32_t>> result;
+  Vertex<Info> *superSource = Utils::createSuperSource(&g);
+  Vertex<Info> *superSink = Utils::createSuperSink(&g);
+
+  Utils::EdmondsKarp(&g, superSource, superSink);
+  for (Vertex<Info>* v: g.getVertexSet()) {
+    if (v->getInfo().getKind() != Info::Kind::City) continue;
+    double flow = 0;
+    for (Edge<Info> *e : v->getIncoming()) flow += e->getFlow();
+    int32_t deficit = round(v->getInfo().getCap().value() - flow);
+    if (deficit > 0) {
+      result.emplace_back(v->getInfo(), deficit);
+    }
+  }
+
+  Utils::removeSuperSource(&g, superSource);
+  Utils::removeSuperSink(&g, superSink);
+  return result;
+}
+
