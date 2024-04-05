@@ -153,42 +153,82 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
     }
 
     if (args[0] == "removingPipes") {
-        auto removingPipesImpact = data->removingPipes();
+        std::vector<std::pair<uint16_t, uint32_t>> maxFlows = data->maxFlowCity();
+        std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<uint16_t, int>>, pair_hash> removingPipesImpact = data->removingPipes();
+
         if (removingPipesImpact.empty()) {
             std::cout << "No pipes found.\n";
             return;
         }
         if (args.size() == 3) {
-            std::pair<Info::Kind, uint32_t> parsedA = Utils::parseCode(args[1]);
-            Vertex<Info> *vertexA = data->findVertex(parsedA.first, parsedA.second);
-            std::string codeA = Utils::parseId(vertexA->getInfo().getKind(), vertexA->getInfo().getId());
+            Vertex<Info> *vertexA;
+            Vertex<Info> *vertexB;
+            std::string codeA;
+            std::string codeB;
+            try {
+                std::pair<Info::Kind, uint32_t> parsedA = Utils::parseCode(args[1]);
+                vertexA = data->findVertex(parsedA.first, parsedA.second);
+                codeA = Utils::parseId(vertexA->getInfo().getKind(), vertexA->getInfo().getId());
 
-            std::pair<Info::Kind, uint32_t> parsedB = Utils::parseCode(args[2]);
-            Vertex<Info> *vertexB = data->findVertex(parsedB.first, parsedB.second);
-            std::string codeB = Utils::parseId(vertexB->getInfo().getKind(), vertexB->getInfo().getId());
+                std::pair<Info::Kind, uint32_t> parsedB = Utils::parseCode(args[2]);
+                vertexB = data->findVertex(parsedB.first, parsedB.second);
+                codeB = Utils::parseId(vertexB->getInfo().getKind(), vertexB->getInfo().getId());
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "ERROR: Invalid codes.\n";
+                return;
+            }
 
             std::pair<std::string, std::string> pipeId = std::make_pair(codeA, codeB);
             auto it = removingPipesImpact.find(pipeId);
-            std::cout << "tried to find pipe id on removingpipesimpact" << std::endl;
+
             if (it == removingPipesImpact.end()) {
+                std::cout << "The key " << codeA << " to " << codeB << " was not found.\n";
                 auto edge = Data::findEdge(vertexA, vertexB);
-                if (edge->getReverse() != nullptr) { // the edge is bidirectional
-                    pipeId = std::make_pair(codeB, codeA);
-                    it = removingPipesImpact.find(pipeId);
+                if (edge != nullptr) {
+                    if (edge->getReverse() != nullptr) { // the edge is bidirectional
+                        std::cout << "Bidirectional edge found. Trying reverse order.\n";
+                        pipeId = std::make_pair(codeB, codeA);
+                        it = removingPipesImpact.find(pipeId);
+                    }
                 }
-                else std::cerr << "ERROR: Pipeline from " << codeA << " to " << codeB << " not found.\n";
+                else std::cerr << "ERROR: Pipeline between " << codeA << " and " << codeB << " not found.\n";
             }
             if (it != removingPipesImpact.end()){
                 std::cout << "Impact of removing Pipeline from " << codeA << " to " << codeB << ":\n";
+                std::cout << "City | Old Flow | New Flow | Deficit\n";
                 for (const auto &cityFlow : it->second) {
-                    std::cout << "City " << Utils::parseId(Info::Kind::City, cityFlow.first) << " would have a water cityFlow of " << cityFlow.second << " units.\n";
+                    auto cityId = cityFlow.first;
+                    auto newFlow = cityFlow.second;
+                    auto itCity = std::find_if(maxFlows.begin(), maxFlows.end(),
+                                           [cityId](const auto
+                                             &pair) { return pair.first == cityId; });
+                    unsigned int deficit = itCity->second - newFlow;
+                    if (deficit > 0)
+                        std::cout << Utils::parseId(Info::Kind::City, cityFlow.first) << "  |  "
+                        << itCity->second << "         " << cityFlow.second << "        " << deficit << std::endl;
                 }
             }
         } else if (args.size() == 1) {
             int removablePipesCount = 0;
             std::cout << "Removable pipelines without impact:\n";
             for (const auto& [pipeId, cityFlows] : removingPipesImpact) {
-                if (cityFlows.empty()) {
+                bool affectsFlow = false;
+                for (const auto& cityFlow : cityFlows) {
+                    auto cityId = cityFlow.first;
+                    auto newFlow = cityFlow.second;
+
+                    // Find original flow
+                    auto itCity = std::find_if(maxFlows.begin(), maxFlows.end(),
+                                               [cityId](const auto &pair) { return pair.first == cityId; });
+                    if (itCity != maxFlows.end()) {
+                        if (newFlow < itCity->second) {
+                            // at least one city was affected
+                            affectsFlow = true;
+                            break;
+                        }
+                    }
+                }
+                if (!affectsFlow) {
                     std::cout << pipeId.first << " to " << pipeId.second << '\n';
                     ++removablePipesCount;
                 }

@@ -171,7 +171,6 @@ Edge<Info>* Data::findEdge(Vertex<Info>* vertexA, Vertex<Info>* vertexB) {
     return nullptr;
 }
 
-// TODO: would it be better to have the pairs of Info as key, instead of pairs of string codes?
 //For each examined pipeline, list the affected cities displaying their codes and water supply in deficit.
 std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<uint16_t, int>>, pair_hash> Data::removingPipes() {
     std::vector<std::pair<uint16_t, uint32_t>> maxFlows = maxFlowCity();
@@ -211,7 +210,6 @@ std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<ui
             }
 
             EdgeKey key;
-            // par de codes (strings)
             std::string codeA = Utils::parseId(v->getInfo().getKind(), v->getInfo().getId());
             std::string codeB = Utils::parseId(e->getDest()->getInfo().getKind(), e->getDest()->getInfo().getId());
 
