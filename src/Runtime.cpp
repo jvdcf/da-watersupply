@@ -34,19 +34,18 @@ Runtime::Runtime(Data *d) { this->data = d; }
 
 void Runtime::printHelp() {
 
-  std::cout
-        << "Available commands:\n"
-        << "quit\n"
-        << "    Quits this program.\n"
-        << "help\n"
-        << "    Prints this help.\n"
-        << "count\n"
-        << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
-        << "maxFlowCity [cityId]\n"
-        << "    Maximum amount of water that can reach each or a specific "
-           "city.\n"
-        << "needsMet\n"
-        << "    Cities with not enough flow for their demand";
+  std::cout << "Available commands:\n"
+            << "quit\n"
+            << "    Quits this program.\n"
+            << "help\n"
+            << "    Prints this help.\n"
+            << "count\n"
+            << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
+            << "maxFlowCity [cityId]\n"
+            << "    Maximum amount of water that can reach each or a specific "
+               "city.\n"
+            << "needsMet\n"
+            << "    Cities with not enough flow for their demand" << std::endl;
 }
 
 void Runtime::handleQuit() {
@@ -69,7 +68,8 @@ void Runtime::handleMaxFlowCity(std::vector<CommandLineValue> args) {
     }
     uint16_t citySelected = args[0].getInt().value();
     if (!maxFlows.contains(citySelected)) {
-      error("City id '" + std::to_string(args[0].getInt().value()) + "' not found.");
+      error("City id '" + std::to_string(args[0].getInt().value()) +
+            "' not found.");
       return;
     }
     std::cout << Utils::parseId(Info::Kind::City, citySelected) << ": "
@@ -88,16 +88,35 @@ void Runtime::handleMaxFlowCity(std::vector<CommandLineValue> args) {
 
 void Runtime::handleRmReservoir(std::vector<CommandLineValue> args) {
   uint32_t id = args[0].getInt().value();
-  if (Utils::findVertex(data->getGraph(), Info::Kind::Reservoir, id) == nullptr) return;
+  if (Utils::findVertex(data->getGraph(), Info::Kind::Reservoir, id) == nullptr)
+    return;
   auto res = data->removeReservoir(id);
   if (res.empty()) {
-    std::cout << "If the reservoir " << id << " is removed, no changes are observed" << std::endl;
+    std::cout << "If the reservoir " << id
+              << " is removed, no changes are observed" << std::endl;
     return;
   }
   std::cout << "The following cities would be affected:" << std::endl;
   for (auto r : res) {
-    std::cout << "C_" << std::get<0>(r) << ": Old: " << std::get<1>(r) << ", New: " << std::get<2>(r) << std::endl;
+    std::cout << "C_" << std::get<0>(r) << ": Old: " << std::get<1>(r)
+              << ", New: " << std::get<2>(r) << std::endl;
   }
+}
+
+void Runtime::handleNeedsMet() {
+  auto result = data->meetsWaterNeeds();
+  if (result.empty())
+    std::cout << "This network configuration meets the water needs of its "
+                 "costumers.\n";
+  else
+    std::cout << "Cities with not enough flow for their demand:\n";
+  for (const auto &pair : result) {
+    std::cout << Utils::parseId(Info::Kind::City, pair.first.getId()) << ": "
+              << (pair.second * (-1))
+              << " (Flow: " << pair.first.getCap().value() - pair.second << '/'
+              << pair.first.getCap().value() << ")\n";
+  }
+  return;
 }
 
 void Runtime::processArgs(std::string args) {
@@ -106,7 +125,8 @@ void Runtime::processArgs(std::string args) {
     return error("The command '" + args +
                  "' is invalid. Type 'help' to know more.");
   auto [rest, cmd] = cmd_res.value();
-  if (!rest.empty()) warning("Trailing output: '" + rest + "'.");
+  if (!rest.empty())
+    warning("Trailing output: '" + rest + "'.");
   switch (cmd.command) {
   case Command::Help:
     return printHelp();
@@ -118,23 +138,14 @@ void Runtime::processArgs(std::string args) {
     return handleMaxFlowCity(cmd.args);
   case Command::RmReservoir:
     return handleRmReservoir(cmd.args);
+  case Command::NeedsMet:
+    return handleNeedsMet();
   case Command::RmPump:
   case Command::RmPipe:
+  default:
     error("AAAAAAAAAAAAAAAAAAAAAAA");
     break;
   }
-
-  // if (args[0] == "needsMet") {
-  //   if (args.size() > 2) {error("Invalid number of arguments for 'needsMet'."); return;}
-  //   auto result = data->meetsWaterNeeds();
-  //   if (result.empty()) std::cout << "This network configuration meets the water needs of its costumers.\n";
-  //   else std::cout << "Cities with not enough flow for their demand:\n";
-  //   for (const auto& pair: result) {
-  //     std::cout << Utils::parseId(Info::Kind::City, pair.first.getId()) << ": " << (pair.second * (-1))
-  //               << " (Flow: " << pair.first.getCap().value() - pair.second << '/' << pair.first.getCap().value() << ")\n";
-  //   }
-  //   return;
-  // }
 
   info("Type 'help' to see the available commands.");
 }

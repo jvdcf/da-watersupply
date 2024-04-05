@@ -137,6 +137,7 @@ public:
     RmReservoir,
     RmPipe,
     RmPump,
+    NeedsMet,
   } command;
   std::vector<CommandLineValue> args;
   Command(Cmd typ, std::vector<CommandLineValue> args)
@@ -189,6 +190,12 @@ public:
   static Parser<Command> parse_count() {
     return ws().pair(string_p("count")).pair(ws()).pmap<Command>([](auto inp) {
       return Command(Command::Count, {});
+    });
+  }
+
+  static Parser<Command> parse_needsMet() {
+    return ws().pair(string_p("needsMet")).pair(ws()).pmap<Command>([](auto inp) {
+      return Command(Command::NeedsMet, {});
     });
   }
 
@@ -248,6 +255,7 @@ public:
       parse_help(),
       parse_quit(),
       parse_count(),
+      parse_needsMet(),
       parse_maxflowcity(),
       parse_rm(),
     }));
@@ -256,8 +264,10 @@ public:
   void printHelp();
   void handleQuit();
   void handleCount();
+  void handleNeedsMet();
   void handleMaxFlowCity(std::vector<CommandLineValue> args);
   void handleRmReservoir(std::vector<CommandLineValue> args);
+
 
 };
 
