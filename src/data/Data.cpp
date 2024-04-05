@@ -197,52 +197,6 @@ std::vector<std::tuple<uint16_t,uint32_t,uint32_t>> Data::removeReservoir(uint16
   return res; 
 }
   
-std::vector<std::pair<uint16_t, int32_t>> Data::meetsWaterNeeds() {
-  std::vector<std::pair<uint16_t, int32_t>> result;
-  Vertex<Info> *superSource = Utils::createSuperSource(&g);
-  Vertex<Info> *superSink = Utils::createSuperSink(&g);
-
-  Utils::EdmondsKarp(&g, superSource, superSink);
-  for (Vertex<Info>* v: g.getVertexSet()) {
-    if (v->getInfo().getKind() != Info::Kind::City) continue;
-    double flow = 0;
-    for (Edge<Info> *e : v->getIncoming()) flow += e->getFlow();
-    int32_t deficit = round(v->getInfo().getCap().value() - flow);
-    if (deficit > 0) {
-      result.emplace_back(v->getInfo(), deficit);
-    }
-  }
-
-  Utils::removeSuperSource(&g, superSource);
-  Utils::removeSuperSink(&g, superSink);
-  return result;
-}
-
-std::vector<std::tuple<uint16_t,uint32_t,uint32_t>> Data::removeReservoir(uint16_t id) {
-  auto all_before = maxFlowCity();
-  Vertex<Info>* to_be_deactivated;
-  for (auto vx : this->getGraph().getVertexSet()) {
-    if (vx->getInfo().getKind() == Info::Kind::Reservoir && vx->getInfo().getId() == id) {
-      to_be_deactivated = vx;
-    }
-  }
-  if (to_be_deactivated == nullptr) panic("removeReservoir is broken?");
-  Info inf = to_be_deactivated->getInfo();
-  inf.disable();
-  to_be_deactivated->setInfo(inf);
-  auto all_after = maxFlowCity();
-  inf.enable();
-  to_be_deactivated->setInfo(inf);
-  std::vector<std::tuple<uint16_t, uint32_t, uint32_t>> res;
-  for (auto [bid, flow] : all_before) {
-    uint32_t new_flow = all_after.at(bid);
-    if (new_flow < flow) {
-      res.push_back(std::tuple(bid, flow, new_flow));
-    }
-  }
-  return res; 
-}
-  
 
 std::vector<std::pair<Info, int32_t>> Data::meetsWaterNeeds() {
   std::vector<std::pair<Info, int32_t>> result;
