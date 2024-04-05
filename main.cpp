@@ -74,7 +74,7 @@ std::vector<Csv> parseCSVs(std::vector<std::string> paths) {
 int main(int argc, char **argv) {
   if (argc != 2) printError();
   if (!std::filesystem::is_directory(argv[1])) {
-    error("The path provided is not a directory");
+    error("The path provided is not a directory (" + std::string(argv[1]) + ")");
     printError();
   }
 
