@@ -138,7 +138,7 @@ private:
   std::variant<ReservoirData, PumpData, CityData> data;
 };
 
-// Hash function for Info
+/// Hash function for Info
 namespace std {
     template<> struct hash<Info> {
         size_t operator()(const Info& info) const noexcept {

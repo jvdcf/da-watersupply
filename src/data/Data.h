@@ -9,6 +9,7 @@
 #include "../CSV.h"
 #include "Info.h"
 
+/// Hash function for pairs.
 struct pair_hash {
     template <class T1, class T2>
     std::size_t operator () (const std::pair<T1, T2> &pair) const {
@@ -73,27 +74,36 @@ public:
     /**
      * @brief Impact in each city of removing each pump station
      * @details Calculates the flow arriving at each city after inactivating each pump station.
-     * @note Time complexity: O(V^2 * E^2) where V is the number of vertexes and E is the number of edges in the graph.
-     * @return A map with the Info of the removed pump stations and a vector of pairs with the city id and the resulting deficit.
+     * @note Time complexity: O(P *V * E^2) where V is the number of vertexes, E is the number of edges in the graph, and P is the number of pump stations.
+     * @return A map with the Info of the removed pump stations and a vector of pairs with the city id and the resulting flow.
      */
-     std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> removingPumps();
+     std::unordered_map<Info, std::vector<std::pair<uint16_t, uint32_t>>> removingPumps();
 
     /**
      * @brief Finds an Edge between two vertices the graph.
      * @note Time complexity: O(V + E) where V is the number of vertices and E is the number of edges in the graph.
-     * @param srcId: Id of the source vertex.
-     * @param destId: Id of the destination vertex.
+     * @param vertexA: A pointer to the source Vertex<Info> object.
+     * @param vertexB: A pointer to the target Vertex<Info> object.
      * @return A pointer to the Edge<Info> object if found, nullptr otherwise.
      */
-    Edge<Info> *findEdge(uint32_t srcId, uint32_t destId);
+    static Edge<Info> *findEdge(Vertex<Info> *vertexA, Vertex<Info> *vertexB);
+
+    /**
+     * @brief Finds a vertex on the graph, based on its type and id
+     * @param kind: Info::Kind (City, Reservoir or Station)
+     * @param id: Id number
+     * @return A pointer to the Vertex<Info> object if found, nullptr otherwise.
+    */
+    Vertex<Info> *findVertex(Info::Kind kind, uint32_t id);
 
     /**
      * @brief Impact in each city of removing each pipe
      * @details Calculates the flow arriving at each city after removing each pipe.
      * @note Time complexity: O((V+E) * V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
-     * @return A map with the pair of the source and destination vertexes of the removed pipes and a vector of pairs with the city id and the resulting deficit.
+     * @return A map with the pair of the source and destination vertexes of the removed pipes and a vector of pairs with the city id and the resulting flow.
      */
-    std::unordered_map<std::pair<uint16_t, uint16_t>, std::vector<std::pair<uint16_t, int>>, pair_hash> removingPipes();
+    std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<uint16_t, int>>, pair_hash>
+    removingPipes();
 
 };
 

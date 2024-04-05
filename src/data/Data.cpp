@@ -125,11 +125,12 @@ std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
   Vertex<Info> *superSink = Utils::createSuperSink(&g);
   Utils::EdmondsKarp(&g, superSource, superSink);
 
-  std::vector<std::pair<uint16_t, uint32_t>> result; // por que nao um unordered_map?
+  std::vector<std::pair<uint16_t, uint32_t>> result;
   for (Vertex<Info> *v : g.getVertexSet()) {
     if (v->getInfo().getKind() == Info::Kind::City) {
       uint32_t flow = 0;
       for (Edge<Info> *e : v->getIncoming()) {
+          // if flow + e->getFlow() <= e->getCapacity(), flow+=e->getFlow()
         flow += e->getFlow();
       }
       result.emplace_back(v->getInfo().getId(), flow);
@@ -141,46 +142,38 @@ std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
   return result;
 }
 
-std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> Data::removingPumps() {
-    std::vector<std::pair<uint16_t, uint32_t>> maxFlows = maxFlowCity();
-    std::unordered_map<Info, std::vector<std::pair<uint16_t, int>>> pumpImpactMap;
-
+std::unordered_map<Info, std::vector<std::pair<uint16_t, uint32_t>>> Data::removingPumps() {
+    std::unordered_map<Info, std::vector<std::pair<uint16_t, uint32_t>>> pumpImpactMap;
     for (Vertex<Info> *v : g.getVertexSet()) {
         if (v->getInfo().getKind() == Info::Kind::Pump) {
             v->setActive(false);
-            std::vector<std::pair<uint16_t, int>> cityDeficits;
-            std::vector<std::pair<uint16_t, uint32_t>> newMaxFlows = maxFlowCity();
-            for (const auto &[cityId, originalFlow] : maxFlows) {
-                auto it = std::find_if(newMaxFlows.begin(), newMaxFlows.end(),
-                                       [cityId](const auto &pair)
-                                       { return pair.first == cityId; });
-                if (it != newMaxFlows.end() && it->second < originalFlow) {
-                    cityDeficits.emplace_back(cityId, originalFlow - it->second);
-                }
-            }
-            pumpImpactMap[v->getInfo()] = cityDeficits;
+            std::vector<std::pair<uint16_t, uint32_t>> newFlows = maxFlowCity();
+            pumpImpactMap[v->getInfo()] = newFlows;
             v->setActive(true);
         }
     }
     return pumpImpactMap;
 }
 
-Edge<Info>* Data::findEdge(uint32_t srcId, uint32_t destId) {
-    Vertex<Info> *srcVertex = Utils::findVertex(g, srcId);
-    Vertex<Info> *destVertex = Utils::findVertex(g, destId);
-    if (!srcVertex || !destVertex) {
+Vertex<Info>* Data::findVertex(Info::Kind kind, uint32_t id){
+    return Utils::findVertex(g, kind, id);
+}
+
+Edge<Info>* Data::findEdge(Vertex<Info>* vertexA, Vertex<Info>* vertexB) {
+    if (!vertexA || !vertexB) {
         throw std::runtime_error("Source or destination vertex not found.");
     }
-    for (Edge<Info> *edge: srcVertex->getAdj()) {
-        if (edge->getDest() == destVertex) {
+    for (Edge<Info> *edge: vertexA->getAdj()) {
+        if (edge->getDest() == vertexB) {
             return edge;
         }
     }
     return nullptr;
 }
 
+// TODO: would it be better to have the pairs of Info as key, instead of pairs of string codes?
 //For each examined pipeline, list the affected cities displaying their codes and water supply in deficit.
-std::unordered_map<std::pair<uint16_t, uint16_t>, std::vector<std::pair<uint16_t, int>>, pair_hash> Data::removingPipes() {
+std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<uint16_t, int>>, pair_hash> Data::removingPipes() {
     std::vector<std::pair<uint16_t, uint32_t>> maxFlows = maxFlowCity();
 
     for (Vertex<Info> *v : g.getVertexSet()) {
@@ -189,7 +182,7 @@ std::unordered_map<std::pair<uint16_t, uint16_t>, std::vector<std::pair<uint16_t
         }
     }
 
-    using EdgeKey = std::pair<uint16_t, uint16_t>;
+    using EdgeKey = std::pair<std::string, std::string>;
     std::unordered_map<EdgeKey, std::vector<std::pair<uint16_t, int>>, pair_hash> pipeImpactMap;
 
     for (Vertex<Info> *v : g.getVertexSet()) {
@@ -206,27 +199,31 @@ std::unordered_map<std::pair<uint16_t, uint16_t>, std::vector<std::pair<uint16_t
                 e->getReverse()->setWeight(0);
             }
 
-            std::vector<std::pair<uint16_t, int>> cityDeficits;
+            std::vector<std::pair<uint16_t, int>> newFlows;
             std::vector<std::pair<uint16_t, uint32_t>> newMaxFlows = maxFlowCity();
             for (const auto &[cityId, originalFlow] : maxFlows) {
                 auto it = std::find_if(newMaxFlows.begin(), newMaxFlows.end(),
                                        [cityId](const auto &pair)
                                        { return pair.first == cityId; });
-                if (it != newMaxFlows.end() && it->second < originalFlow) {
-                    cityDeficits.emplace_back(cityId, originalFlow - it->second);
+                if (it != newMaxFlows.end()) {
+                    newFlows.emplace_back(cityId,  it->second);
                 }
             }
 
             EdgeKey key;
+            // par de codes (strings)
+            std::string codeA = Utils::parseId(v->getInfo().getKind(), v->getInfo().getId());
+            std::string codeB = Utils::parseId(e->getDest()->getInfo().getKind(), e->getDest()->getInfo().getId());
+
             if (isBidirectional) { // order the pair
-                key = (v->getInfo().getId() < e->getDest()->getInfo().getId()) ?
-                      std::make_pair(v->getInfo().getId(), e->getDest()->getInfo().getId()) :
-                      std::make_pair(e->getDest()->getInfo().getId(), v->getInfo().getId());
+                key = (codeA < codeB) ?
+                      std::make_pair(codeA, codeB) :
+                      std::make_pair(codeB, codeA);
             } else {
-                key = std::make_pair(v->getInfo().getId(), e->getDest()->getInfo().getId());
+                key = std::make_pair(codeA, codeB);
             }
 
-            pipeImpactMap[key] = cityDeficits;
+            pipeImpactMap[key] = newFlows;
 
             e->setWeight(originalWeight);
             e->setSelected(true);
