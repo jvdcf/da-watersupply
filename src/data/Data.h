@@ -82,7 +82,7 @@ public:
      * @note Time complexity: O(P *V * E^2) where V is the number of vertexes, E is the number of edges in the graph, and P is the number of pump stations.
      * @return A map with the Info of the removed pump stations and a vector of pairs with the city id and the resulting flow.
      */
-     std::unordered_map<Info, std::vector<std::pair<uint16_t, uint32_t>>> removingPumps();
+    std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>>  removingPumps();
 
     /**
      * @brief Finds an Edge between two vertices the graph.

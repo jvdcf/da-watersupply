@@ -160,7 +160,7 @@ std::unordered_map<Info, std::vector<std::pair<uint16_t, uint32_t>>> Data::remov
     for (Vertex<Info> *v : g.getVertexSet()) {
         if (v->getInfo().getKind() == Info::Kind::Pump) {
             v->setActive(false);
-            std::vector<std::pair<uint16_t, uint32_t>> newFlows = maxFlowCity();
+            std::unordered_map<uint16_t, uint32_t> newFlows = maxFlowCity();
             pumpImpactMap[v->getInfo()] = newFlows;
             v->setActive(true);
         }

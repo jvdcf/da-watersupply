@@ -97,28 +97,18 @@ void Runtime::processArgs(const std::vector<std::string> &args) {
                 return;
             }
 
-            // Find the pump station
-            auto itPump = std::find_if(newFlows.begin(), newFlows.end(),
-                                   [pumpSelected](const auto &pair) {
-                                       return pair.first.getId() == pumpSelected;
-                                   });
+            Vertex<Info>* pumpVertex = data->findVertex(Info::Kind::Pump, pumpSelected);
 
-            if (itPump == newFlows.end()) {
-                std::cerr << "ERROR: Pump station id '" << args[1] << "' not found.\n";
-            } else {
-                std::cout << "Impact of removing Pump Station " << Utils::parseId(Info::Kind::Pump, itPump->first.getId()) << ":\n";
-                std::cout << "City | Old Flow | New Flow | Deficit\n";
-                for (const auto &cityFlow : itPump->second) {
-                    auto cityId = cityFlow.first;
-                    auto newFlow = cityFlow.second;
-                    auto itCity = std::find_if(maxFlows.begin(), maxFlows.end(),
-                                           [cityId](const auto &pair)
-                                           { return pair.first == cityId; });
-                    unsigned int deficit = itCity->second - newFlow;
-                    if (deficit > 0)
-                        std::cout << Utils::parseId(Info::Kind::City, cityFlow.first) << "  |  "
-                        << itCity->second << "         " << cityFlow.second << "        " << deficit << std::endl;
-                }
+            std::cout << "Impact of removing Pump Station " << Utils::parseId(Info::Kind::Pump, pumpSelected) << ":\n";
+            std::cout << "City | Old Flow | New Flow | Difference\n";
+            for (const auto &cityFlow : newFlows[pumpVertex->getInfo()]) {
+              auto cityId = cityFlow.first;
+              auto newFlow = cityFlow.second;
+              auto oldFlow = maxFlows[cityId];
+              int difference= newFlow - oldFlow;
+              if (difference != 0)
+                std::cout << Utils::parseId(Info::Kind::City, cityFlow.first) << "  |  "
+                          << oldFlow << "         " << cityFlow.second << "        " << difference << std::endl;
             }
         } else {
             std::cout << "Removable pump stations without impact:\n";
