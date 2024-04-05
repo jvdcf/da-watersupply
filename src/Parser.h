@@ -3,6 +3,7 @@
 #include "Utils.h"
 
 #include <cstddef>
+#include <exception>
 #include <functional>
 #include <optional>
 #include <ostream>
@@ -178,7 +179,11 @@ public:
       if (!res.has_value())
         return {};
       auto [rest, resu] = res.value();
-      return std::tuple(rest, f(resu));
+      try {
+        return std::tuple(rest, f(resu));
+      } catch(std::exception& e) {
+        return {};
+      }
     });
   };
 };
@@ -232,4 +237,12 @@ Parser<char> char_p(char c);
  * the input string.
  */
 Parser<std::string> string_p(std::string s);
+
+Parser<std::string> ws();
+
+template <class T> Parser<T> null() {
+  return Parser<T>([](auto s) -> POption<T> {
+    return std::tuple(s, T());
+  });
+};
 #endif // DA2324_PRJ1_G163_PARSER_H

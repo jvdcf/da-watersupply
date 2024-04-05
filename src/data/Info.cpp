@@ -12,7 +12,7 @@ const std::variant<Info::ReservoirData, Info::PumpData, Info::CityData> &Info::g
   return data;
 }
 
-Info::Info(Info::Kind kind, uint16_t id, const std::variant<ReservoirData, PumpData, CityData> &data) : kind(kind), id(id), data(data) {}
+Info::Info(Info::Kind kind, uint16_t id, const std::variant<ReservoirData, PumpData, CityData> &data) : kind(kind), id(id), data(data), is_active(true) {}
 
 std::optional<float> Info::getCap() const {
   switch (getKind()) {
@@ -52,6 +52,18 @@ std::optional<std::string> Info::getMunicipality() const {
     default:
       return {};
   }
+}
+
+bool Info::isActive() const {
+  return is_active;
+}
+
+void Info::enable() {
+  this->is_active = true;
+}
+
+void Info::disable() {
+  this->is_active = false;
 }
 
 bool Info::operator==(const Info &rhs) const {
