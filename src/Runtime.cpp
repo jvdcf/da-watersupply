@@ -87,7 +87,7 @@ void Runtime::handleRmReservoir(std::vector<CommandLineValue> args) {
   auto res = data->removeReservoir(id);
   if (res.empty()) {
     std::cout << "If the reservoir " << id << " is removed, no changes are observed" << std::endl;
-    return;
+      return;
   }
   std::cout << "The following cities would be affected:" << std::endl;
   for (auto r : res) {
@@ -118,6 +118,5 @@ void Runtime::processArgs(std::string args) {
     error("AAAAAAAAAAAAAAAAAAAAAAA");
     break;
   }
-
   info("Type 'help' to see the available commands.");
 }
