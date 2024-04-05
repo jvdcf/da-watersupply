@@ -1,8 +1,7 @@
 #include "Data.h"
 #include <cstdint>
-#include <unordered_set>
 #include <utility>
-#include <vector>
+#include <cmath>
 
 // Constructor
 
@@ -200,19 +199,21 @@ std::vector<std::tuple<uint16_t,uint32_t,uint32_t>> Data::removeReservoir(uint16
 std::vector<std::pair<uint16_t, int32_t>> Data::meetsWaterNeeds() {
   std::vector<std::pair<uint16_t, int32_t>> result;
   Vertex<Info> *superSource = Utils::createSuperSource(&g);
+  Vertex<Info> *superSink = Utils::createSuperSink(&g);
 
+  Utils::EdmondsKarp(&g, superSource, superSink);
   for (Vertex<Info>* v: g.getVertexSet()) {
     if (v->getInfo().getKind() != Info::Kind::City) continue;
-    Utils::EdmondsKarp(&g, superSource, v);
-    uint32_t flow = 0;
+    double flow = 0;
     for (Edge<Info> *e : v->getIncoming()) flow += e->getFlow();
-    int32_t deficit = v->getInfo().getCap().value() - flow;
+    int32_t deficit = round(flow - v->getInfo().getCap().value());
     if (deficit < 0) {
-      result.emplace_back(v->getInfo().getId(), deficit);
+      result.emplace_back(v->getInfo(), deficit);
     }
   }
 
   Utils::removeSuperSource(&g, superSource);
+  Utils::removeSuperSink(&g, superSink);
   return result;
 }
 
