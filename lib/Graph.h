@@ -28,7 +28,6 @@ public:
     std::vector<Edge<T> *> getAdj() const;
     bool isVisited() const;
     bool isProcessing() const;
-    bool isActive() const;
     unsigned int getIndegree() const;
     double getDist() const;
     Edge<T> *getPath() const;
@@ -53,7 +52,6 @@ protected:
     // auxiliary fields
     bool visited = false; // used by DFS, BFS, Prim ...
     bool processing = false; // used by isDAG (in addition to the visited attribute)
-    bool active = true; // consider or not the vertex
     unsigned int indegree; // used by topsort
     double dist = 0;
     Edge<T> *path = nullptr;
@@ -155,7 +153,7 @@ void deleteMatrix(double **m, int n);
 /************************* Vertex  **************************/
 
 template <class T>
-Vertex<T>::Vertex(T in, bool active): info(in), active(active) {}
+Vertex<T>::Vertex(T in, bool active): info(in) {}
 /*
  * Auxiliary function to add an outgoing edge to a vertex (this),
  * with a given destination vertex (d) and edge weight (w).
@@ -228,11 +226,6 @@ bool Vertex<T>::isVisited() const {
 template <class T>
 bool Vertex<T>::isProcessing() const {
     return this->processing;
-}
-
-template <class T>
-bool Vertex<T>::isActive() const {
-    return this->active;
 }
 
 template <class T>
