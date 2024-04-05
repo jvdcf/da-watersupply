@@ -1,20 +1,42 @@
 #include <functional>
+#include <iostream>
+#include <ostream>
+#include <string>
 #include "Utils.h"
+
+
+[[noreturn]] void panic(std::string s) {
+  std::cerr << "\e[38;2;255;100;100m[CRITICAL ERR]\e[0m " << s << std::endl;
+  std::exit(1);
+}
+
+void error(std::string s) {
+  std::cerr << "\e[38;2;255;100;0m[ERROR]\e[0m " << s << std::endl;
+}
+
+void info(std::string s) {
+  std::cerr << "\e[38;2;0;235;235m[INFO]\e[0m " << s << std::endl;
+}
+
+void warning(std::string s) {
+  std::cerr << "\e[38;2;255;255;15m[WARNING]\e[0m " << s << std::endl;
+}
+
 
 std::pair<Info::Kind, uint32_t> Utils::parseCode(std::string code) {
   char charKind = code[0];
   switch (charKind) {
     case 'C':
-      if (code[1] != '_') std::cerr << "ERROR: " << code << "is an invalid code.\n";
+      if (code[1] != '_') panic(std::string(code.c_str()) + " is an invalid code");
       return {Info::Kind::City, std::stoi(code.substr(2))};
     case 'R':
-      if (code[1] != '_') std::cerr << "ERROR: " << code << "is an invalid code.\n";
+      if (code[1] != '_') panic(std::string(code.c_str()) + " is an invalid code");
       return {Info::Kind::Reservoir, std::stoi(code.substr(2))};
     case 'P':
-      if (code[1] != 'S' | code[2] != '_') std::cerr << "ERROR: " << code << "is an invalid code.\n";
+      if (code[1] != 'S' | code[2] != '_') panic(std::string(code.c_str()) + " is an invalid code");
       return {Info::Kind::Pump, std::stoi(code.substr(3))};
     default:
-      std::cerr << "ERROR: " << code << "is an invalid code.\n";
+      panic(std::string(code.c_str()) + " is an invalid code");
   }
 }
 
@@ -41,7 +63,7 @@ Vertex<Info> *Utils::findVertex(Graph<Info> &g, Info::Kind kind, uint32_t id) {
       return v;
     }
   }
-  std::cerr << "ERROR: Could not find vertex for " << parseId(kind, id) << std::endl;
+  error("Could not find vertex for " + parseId(kind, id));
   return nullptr;
 }
 
@@ -120,7 +142,7 @@ Vertex<Info> *Utils::createSuperSource(Graph<Info> *g) {
   Vertex<Info> *s = g->getVertexSet().back();
   for (auto v: g->getVertexSet()) {
     if (v->getInfo().getKind() == Info::Kind::Reservoir) {
-      g->addEdge(s, v, INF);
+      g->addEdge(s, v, v->getInfo().getCap().value());
     }
   }
   return s;
@@ -131,7 +153,7 @@ Vertex<Info> *Utils::createSuperSink(Graph<Info> *g) {
   Vertex<Info> *t = g->getVertexSet().back();
   for (auto v: g->getVertexSet()) {
     if (v->getInfo().getKind() == Info::Kind::City) {
-      g->addEdge(v, t, INF);
+      g->addEdge(v, t, v->getInfo().getCap().value());
     }
   }
   return t;

@@ -2,9 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-Runtime::Runtime(Data *d) {
-  this->data = d;
-}
+Runtime::Runtime(Data *d) { this->data = d; }
 
 [[noreturn]] void Runtime::run() {
   std::cout << "Welcome to Water Supply Management.\n"
@@ -26,12 +24,13 @@ Runtime::Runtime(Data *d) {
       args.push_back(buf);
     }
 
-    if(args.empty()) continue;
+    if (args.empty())
+      continue;
     processArgs(args);
   }
 }
 
-void Runtime::processArgs(const std::vector<std::string>& args) {
+void Runtime::processArgs(const std::vector<std::string> &args) {
   if (args[0] == "quit") {
     std::cout << "Quitting...\n";
     exit(0);
@@ -53,8 +52,6 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
               << "removingPipes [srcCode] [destCode]\n"
               << "    Removable pipelines, which won't affect the flow of any city.\n"
               << "    Shows the impact on cities if the specified pipeline were to be removed.\n";
-
-
       return;
   }
 
@@ -67,24 +64,24 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
   }
 
   if (args[0] == "maxFlowCity") {
-    std::vector<std::pair<uint16_t, uint32_t>> maxFlows = data->maxFlowCity();
+    std::unordered_map<uint16_t, uint32_t> maxFlows = data->maxFlowCity();
 
     if (args.size() == 2) {
       uint16_t citySelected;
       try {citySelected = std::stoi(args[1]);}
-      catch (const std::invalid_argument& e) { std::cerr << "ERROR: Invalid city id '" << args[1] << "'.\n"; return;}
-      auto pair = std::find_if(maxFlows.begin(), maxFlows.end(),[citySelected](const std::pair<uint16_t, uint32_t>& p) {
-        return p.first == citySelected;
-      });
-      if (pair == maxFlows.end()) std::cerr << "ERROR: City id '" << args[1] << "' not found.\n";
-      else std::cout << Utils::parseId(Info::Kind::City, pair->first) << ": " << pair->second << '\n';
+      catch (const std::invalid_argument& e) {error("Invalid city id '" + args[1] + "'."); return;}
+      if (!maxFlows.contains(citySelected)) {error("City id '" + args[1] + "' not found."); return;}
+      std::cout << Utils::parseId(Info::Kind::City, citySelected) << ": " << maxFlows.at(citySelected) << '\n';
 
     } else if (args.size() == 1) {
-      for (const auto &[cityId, flow]: maxFlows) {
-        std::cout << Utils::parseId(Info::Kind::City, cityId) << ": " << flow << '\n';
+      uint32_t sumMaxFlow = 0;
+      for (auto &maxFlow : maxFlows) {
+        std::cout << Utils::parseId(Info::Kind::City, maxFlow.first) << ": " << maxFlow.second << '\n';
+        sumMaxFlow += maxFlow.second;
       }
+      std::cout << "Max flow of the network: " << sumMaxFlow << '\n';
 
-    } else std::cerr << "ERROR: Invalid number of arguments for 'maxFlowCity'.\n";
+    } else error("Invalid number of arguments for 'maxFlowCity'.");
     return;
   }
 
@@ -239,9 +236,7 @@ void Runtime::processArgs(const std::vector<std::string>& args) {
         }
         return;
     }
-
-
-
-    std::cerr << "ERROR: No such command '" << args[0] << "'.\n"
-            << "Type 'help' to see the available commands.\n";
+  
+  error("No such command '" + args[0] + "'.");
+  info("Type 'help' to see the available commands.");
 }

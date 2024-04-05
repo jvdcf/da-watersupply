@@ -1,5 +1,6 @@
 #include "Data.h"
 #include <utility>
+#include <cmath>
 
 // Constructor
 
@@ -12,18 +13,21 @@ Data::Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations) {
 }
 
 void Data::setCities(Csv cities) {
-  std::vector<CsvLine> data = cities.get_data();
+  std::vector<CsvLine> data = cities.to_data();
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
     if (values.empty()) {
-      std::cerr << "WARN: Empty line in Cities.csv" << std::endl;
+      warning("Empty line in Cities.csv");
       continue;
     }
-
-    std::string location = values[0].get_str();
-    uint32_t id = values[1].get_int();
-    float demand = values[3].get_flt();
-    uint32_t population = values[4].get_int();
+    if (!values[0].get_str().has_value()) panic("Incorrect type: Expected string, but found " + values[0].display());
+    std::string location = values[0].get_str().value();
+    if (!values[1].get_int().has_value()) panic("Incorrect type: Expected int, but found " + values[1].display());
+    uint32_t id = values[1].get_int().value();
+    if (!values[3].get_flt().has_value()) panic("Incorrect type: Expected float, but found " + values[3].display());
+    float demand = values[3].get_flt().value();
+    if (!values[4].get_int().has_value()) panic("Incorrect type: Expected int, but found " + values[4].display());
+    uint32_t population = values[4].get_int().value();
 
     const Info info = Info(
             Info::Kind::City,
@@ -34,18 +38,22 @@ void Data::setCities(Csv cities) {
 }
 
 void Data::setReservoirs(Csv reservoirs) {
-  std::vector<CsvLine> data = reservoirs.get_data();
+  std::vector<CsvLine> data = reservoirs.to_data();
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
     if (values.empty()) {
-      std::cerr << "WARN: Empty line in Reservoir.csv" << std::endl;
+      warning("Empty line in Reservoir.csv");
       continue;
     }
-
-    std::string reservoir = values[0].get_str();
-    std::string municipality = values[1].get_str();
-    uint32_t id = values[2].get_int();
-    uint32_t capacity = values[4].get_int();
+    
+    if (!values[0].get_str().has_value()) panic("Incorrect type: Expected string, but found " + values[0].display());
+    std::string reservoir = values[0].get_str().value();
+    if (!values[1].get_str().has_value()) panic("Incorrect type: Expected string, but found " + values[1].display());
+    std::string municipality = values[1].get_str().value();
+    if (!values[2].get_int().has_value()) panic("Incorrect type: Expected int, but found " + values[2].display());
+    uint32_t id = values[2].get_int().value();
+    if (!values[4].get_int().has_value()) panic("Incorrect type: Expected int, but found " + values[4].display());
+    uint32_t capacity = values[4].get_int().value();
 
     const Info info = Info(
             Info::Kind::Reservoir,
@@ -56,15 +64,16 @@ void Data::setReservoirs(Csv reservoirs) {
 }
 
 void Data::setStations(Csv stations) {
-  std::vector<CsvLine> data = stations.get_data();
+  std::vector<CsvLine> data = stations.to_data();
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
     if (values.empty()) {
-      std::cerr << "WARN: Empty line in Stations.csv" << std::endl;
+      warning("Empty line in Stations.csv");
       continue;
     }
 
-    uint32_t id = values[0].get_int();
+    if (!values[0].get_int().has_value()) panic("Incorrect type: Expected int, but found" + values[0].display());
+    uint32_t id = values[0].get_int().value();
 
     const Info info = Info(
             Info::Kind::Pump,
@@ -75,18 +84,22 @@ void Data::setStations(Csv stations) {
 }
 
 void Data::setPipes(Csv pipes) {
-  std::vector<CsvLine> data = pipes.get_data();
+  std::vector<CsvLine> data = pipes.to_data();
   for (CsvLine line : data) {
     std::vector<CsvValues> values = line.get_data();
     if (values.empty()) {
-      std::cerr << "WARN: Empty line in Pipes.csv" << std::endl;
+      warning("Empty line in Pipes.csv");
       continue;
     }
 
-    std::string serviceA = values[0].get_str();
-    std::string serviceB = values[1].get_str();
-    uint32_t capacity = values[2].get_int();
-    bool unidirectional = values[3].get_int();
+    if (!values[0].get_str().has_value()) panic("Incorrect type: Expected string, but found" + values[0].display());
+    std::string serviceA = values[0].get_str().value();
+    if (!values[1].get_str().has_value()) panic("Incorrect type: Expected string, but found" + values[1].display());
+    std::string serviceB = values[1].get_str().value();
+    if (!values[2].get_int().has_value()) panic("Incorrect type: Expected int, but found" + values[2].display());
+    uint32_t capacity = values[2].get_int().value();
+    if (!values[3].get_int().has_value()) panic("Incorrect type: Expected int, but found" + values[3].display());
+    bool unidirectional = values[3].get_int().value();
 
     std::pair<Info::Kind, uint32_t> parsedA = Utils::parseCode(serviceA);
     std::pair<Info::Kind, uint32_t> parsedB = Utils::parseCode(serviceB);
@@ -99,6 +112,8 @@ void Data::setPipes(Csv pipes) {
     else g.addEdge(vertexA, vertexB, capacity);
   }
 }
+
+Graph<Info> &Data::getGraph() {return g;}
 
 // Functions =================================================================================================
 
@@ -120,21 +135,19 @@ std::array<int, 3> Data::countVertexes() {
   return counts;
 }
 
-std::vector<std::pair<uint16_t, uint32_t>> Data::maxFlowCity() {
+
+std::unordered_map<uint16_t, uint32_t> Data::maxFlowCity() {
   Vertex<Info> *superSource = Utils::createSuperSource(&g);
   Vertex<Info> *superSink = Utils::createSuperSink(&g);
+
   Utils::EdmondsKarp(&g, superSource, superSink);
 
-  std::vector<std::pair<uint16_t, uint32_t>> result;
-  for (Vertex<Info> *v : g.getVertexSet()) {
-    if (v->getInfo().getKind() == Info::Kind::City) {
-      uint32_t flow = 0;
-      for (Edge<Info> *e : v->getIncoming()) {
-          // if flow + e->getFlow() <= e->getCapacity(), flow+=e->getFlow()
-        flow += e->getFlow();
-      }
-      result.emplace_back(v->getInfo().getId(), flow);
-    }
+  std::unordered_map<uint16_t, uint32_t> result;
+  for (Vertex<Info>* v: g.getVertexSet()) {
+    if (v->getInfo().getKind() != Info::Kind::City) continue;
+    uint32_t flow = 0;
+    for (Edge<Info> *e: v->getIncoming()) flow += round(e->getFlow());
+    result.insert({v->getInfo().getId(), flow});
   }
 
   Utils::removeSuperSource(&g, superSource);

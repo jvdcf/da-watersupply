@@ -56,6 +56,11 @@ public:
   Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations);
 
   /**
+   * @brief Getter for the graph
+   */
+  Graph<Info> &getGraph();
+
+  /**
    * @brief Number of cities, reservoirs and pumps.
    * @details Useful for debug.
    * @note Time complexity: O(V) where V is the number of vertexes in the graph.
@@ -64,12 +69,12 @@ public:
   std::array<int, 3> countVertexes();
 
   /**
-   * @brief Maximum amount of water that can reach each or a specific city
+   * @brief Maximum amount of water that can reach every city of the graph
    * @details Uses the Edmonds-Karp algorithm to calculate the maximum flow of the graph.
    * @note Time complexity: O(V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
-   * @return A vector of pairs with the city id and the maximum flow that can reach it.
+   * @return A map with the city id and the maximum flow that can reach it.
    */
-  std::vector<std::pair<uint16_t, uint32_t>> maxFlowCity();
+  std::unordered_map<uint16_t, uint32_t> maxFlowCity();
 
     /**
      * @brief Impact in each city of removing each pump station
@@ -104,7 +109,6 @@ public:
      */
     std::unordered_map<std::pair<std::string, std::string>, std::vector<std::pair<uint16_t, int>>, pair_hash>
     removingPipes();
-
 };
 
 

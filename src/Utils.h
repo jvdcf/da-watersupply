@@ -81,5 +81,9 @@ public:
 
 };
 
+[[noreturn]] void panic(std::string s);
 
+void error(std::string s);
+void info(std::string s);
+void warning(std::string s);
 #endif // !UTILS
