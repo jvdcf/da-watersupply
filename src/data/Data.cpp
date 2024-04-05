@@ -197,3 +197,22 @@ std::vector<std::tuple<uint16_t,uint32_t,uint32_t>> Data::removeReservoir(uint16
   return res; 
 }
   
+std::vector<std::pair<uint16_t, int32_t>> Data::meetsWaterNeeds() {
+  std::vector<std::pair<uint16_t, int32_t>> result;
+  Vertex<Info> *superSource = Utils::createSuperSource(&g);
+
+  for (Vertex<Info>* v: g.getVertexSet()) {
+    if (v->getInfo().getKind() != Info::Kind::City) continue;
+    Utils::EdmondsKarp(&g, superSource, v);
+    uint32_t flow = 0;
+    for (Edge<Info> *e : v->getIncoming()) flow += e->getFlow();
+    int32_t deficit = v->getInfo().getCap().value() - flow;
+    if (deficit < 0) {
+      result.emplace_back(v->getInfo().getId(), deficit);
+    }
+  }
+
+  Utils::removeSuperSource(&g, superSource);
+  return result;
+}
+
