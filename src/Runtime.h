@@ -225,6 +225,13 @@ public:
                             auto [rest, value] = inp;
                             return Command(Command::RmReservoir, {value});
                          });
+    auto reservoir_sole = ws().pair(string_p("rm"))
+                    .pair(ws())
+                    .pair(string_p("reservoir"))
+                    .pair(ws())
+                    .pmap<Command>([](auto inp) {
+                      return Command(Command::RmReservoir, {});
+                    });
     auto pump = ws().pair(string_p("rm"))
                     .pair(ws())
                     .pair(string_p("pump"))
@@ -234,6 +241,14 @@ public:
                       auto [rest, value] = inp;
                       return Command(Command::RmPump, {value});
                     });
+    auto pump_sole = ws().pair(string_p("rm"))
+                    .pair(ws())
+                    .pair(string_p("pump"))
+                    .pair(ws())
+                    .pmap<Command>([](auto inp) {
+                      return Command(Command::RmPump, {});
+                    });
+ 
     auto pipe = ws().pair(string_p("rm"))
                     .pair(ws())
                     .pair(string_p("pipe"))
@@ -247,7 +262,15 @@ public:
                       auto [__, fst] = r2;
                       return Command(Command::RmPipe, {fst, snd});
                     });
-    return alt(std::vector({reservoir, pump, pipe}));
+    auto pipe_sole = ws().pair(string_p("rm"))
+                    .pair(ws())
+                    .pair(string_p("pipe"))
+                    .pair(ws())
+                    .pmap<Command>([](auto inp) {
+                      return Command(Command::RmPipe, {});
+                    });
+
+    return alt(std::vector({reservoir, reservoir_sole, pump, pump_sole, pipe, pipe_sole}));
   }
 
   static Parser<Command> parse_cmd() {
@@ -267,8 +290,8 @@ public:
   void handleNeedsMet();
   void handleMaxFlowCity(std::vector<CommandLineValue> args);
   void handleRmReservoir(std::vector<CommandLineValue> args);
-
-
+  void handleRmPump(std::vector<CommandLineValue> args);
+  void handleRmPipe(std::vector<CommandLineValue> args);
 };
 
 #endif // DA2324_PRJ1_G163_RUNTIME_H

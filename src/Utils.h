@@ -39,6 +39,15 @@ public:
    */
   static Vertex<Info>* findVertex(Graph<Info> &g, Info::Kind kind, uint32_t id);
 
+  /**
+   * @brief Finds an Edge between two vertices the graph.
+   * @note Time complexity: O(V + E) where V is the number of vertices and E is
+   * the number of edges in the graph.
+   * @param vertexA: A pointer to the source Vertex<Info> object.
+   * @param vertexB: A pointer to the target Vertex<Info> object.
+   * @return A pointer to the Edge<Info> object if found, nullptr otherwise.
+   */
+  static Edge<Info> *findEdge(Vertex<Info> *vertexA, Vertex<Info> *vertexB);
 
   /**
    * @brief Calculate the maximum flow of a graph using the Edmonds-Karp algorithm.

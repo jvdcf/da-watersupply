@@ -23,7 +23,17 @@ void warning(std::string s) {
   std::cerr << "\e[38;2;255;255;15m[WARNING]\e[0m " << s << std::endl;
 }
 
-
+Edge<Info>* Utils::findEdge(Vertex<Info>* vertexA, Vertex<Info>* vertexB) {
+    if (!vertexA || !vertexB) {
+        throw std::runtime_error("Source or destination vertex not found.");
+    }
+    for (Edge<Info> *edge: vertexA->getAdj()) {
+        if (edge->getDest() == vertexB) {
+            return edge;
+        }
+    }
+    return nullptr;
+}
 std::pair<Info::Kind, uint32_t> Utils::parseCode(std::string code) {
   char charKind = code[0];
   switch (charKind) {
@@ -40,7 +50,7 @@ std::pair<Info::Kind, uint32_t> Utils::parseCode(std::string code) {
       }
       return {Info::Kind::Reservoir, std::stoi(code.substr(2))};
     case 'P':
-      if (code[1] != 'S' | code[2] != '_') {
+      if (code[1] != 'S' || code[2] != '_') {
         error(std::string(code.c_str()) + " is an invalid code");
         throw std::exception();
       }
