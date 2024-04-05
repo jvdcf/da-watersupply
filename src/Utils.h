@@ -2,6 +2,7 @@
 #define UTILS
 
 
+#include <cstdint>
 #include <utility>
 #include "data/Info.h"
 #include "../lib/Graph.h"
@@ -78,6 +79,7 @@ public:
    */
   static void removeSuperSink(Graph<Info> *g, Vertex<Info> *t);
 
+  static uint32_t calcFlow(Graph<Info> *g, Vertex<Info> *t);
 };
 
 [[noreturn]] void panic(std::string s);

@@ -1,4 +1,5 @@
-#include <functional>
+#include <cmath>
+#include <exception>
 #include <iostream>
 #include <ostream>
 #include <string>
@@ -27,16 +28,26 @@ std::pair<Info::Kind, uint32_t> Utils::parseCode(std::string code) {
   char charKind = code[0];
   switch (charKind) {
     case 'C':
-      if (code[1] != '_') panic(std::string(code.c_str()) + " is an invalid code");
+      if (code[1] != '_') {
+        error(std::string(code.c_str()) + " is an invalid code");
+        throw std::exception();
+      }
       return {Info::Kind::City, std::stoi(code.substr(2))};
     case 'R':
-      if (code[1] != '_') panic(std::string(code.c_str()) + " is an invalid code");
+      if (code[1] != '_') {
+        error(std::string(code.c_str()) + " is an invalid code");
+        throw std::exception();
+      }
       return {Info::Kind::Reservoir, std::stoi(code.substr(2))};
     case 'P':
-      if (code[1] != 'S' | code[2] != '_') panic(std::string(code.c_str()) + " is an invalid code");
+      if (code[1] != 'S' | code[2] != '_') {
+        error(std::string(code.c_str()) + " is an invalid code");
+        throw std::exception();
+      }
       return {Info::Kind::Pump, std::stoi(code.substr(3))};
     default:
-      panic(std::string(code.c_str()) + " is an invalid code");
+      error(std::string(code.c_str()) + " is an invalid code");
+      throw std::exception();
   }
 }
 
@@ -69,6 +80,7 @@ Vertex<Info> *Utils::findVertex(Graph<Info> &g, Info::Kind kind, uint32_t id) {
 
 void Utils::EdmondsKarp(Graph<Info> *g, Vertex<Info> *s, Vertex<Info> *t) {
   auto testAndVisit = [](std::queue< Vertex<Info>*> &q, Edge<Info> *e, Vertex<Info> *w, double residual) {
+    if (!w->getInfo().isActive()) return;
     if (! w->isVisited() && residual > 0) {
       w->setVisited(true);
       w->setPath(e);
@@ -171,4 +183,11 @@ void Utils::removeSuperSink(Graph<Info> *g, Vertex<Info> *t) {
     g->removeEdge(e->getOrig()->getInfo(), t->getInfo());
   }
   g->removeVertex(t->getInfo());
+}
+
+
+uint32_t Utils::calcFlow(Graph<Info> *g, Vertex<Info> *t) {
+  uint32_t flow = 0;   
+  for (Edge<Info> *e: t->getIncoming()) flow += round(e->getFlow());
+  return flow;
 }
