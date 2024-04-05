@@ -65,6 +65,9 @@ public:
    * @return A map with the city id and the maximum flow that can reach it.
    */
   std::unordered_map<uint16_t, uint32_t> maxFlowCity();
+  
+
+  std::vector<std::tuple<uint16_t,uint32_t,uint32_t>> removeReservoir(uint16_t id);
 };
 
 

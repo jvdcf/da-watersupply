@@ -124,6 +124,15 @@ public:
    */
   std::optional<std::string> getMunicipality() const;
 
+  /// Get active status
+  bool isActive() const;
+ 
+  /// Disable (is_active = false) 
+  void disable();
+  /// Enable (is_active = true)
+  void enable();
+
+
   /**
    * @brief Equality operator
    */
@@ -136,6 +145,8 @@ private:
   uint16_t id;
   /// Data for the Vertex (ReservoirData, PumpData or CityData)
   std::variant<ReservoirData, PumpData, CityData> data;
+  /// Is active boolean
+  bool is_active;
 };
 
 
