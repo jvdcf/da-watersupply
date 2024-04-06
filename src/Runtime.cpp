@@ -36,26 +36,28 @@ Runtime::Runtime(Data *d) { this->data = d; }
 }
 
 void Runtime::printHelp() {
+  auto keyword = Color(0,255,0).foreground();
+  auto comment = Color(255,255,15).foreground();
   std::cout
       << "Available commands:\n"
-      << "  quit\n"
-      << "      Quits this program.\n"
-      << "  help\n"
-      << "      Prints this help.\n"
-      << "  count\n"
-      << "      Number of cities, reservoirs and pumps. Useful for debug.\n"
-      << "  maxFlowCity [city_id]\n"
-      << "      Maximum amount of water that can reach each or a specific city.\n"
-      << "  needsMet\n"
-      << "      Cities with not enough flow for their demand.\n"
-      << "  rm\n"
-      << "      reservoir [reservoir_id]\n"
-      << "          List the compromised cities if a reservoir, specific via the optional argument, can be removed, or, if empty, all that can be removed.\n"
-      << "      pump [pump_id]\n"
-      << "          List the compromised cities if a pump, specific via the optional argument, can be removed, or, if empty, all pumps that can be removed.\n"
-      << "      pipe [<any_code> <any_code>]\n"
-      << "          List the compromised cities if a pipe, specific via the optional arguments, can be removed, or, if empty, all pipes that can be removed.\n"
-      << std::endl;
+      << keyword << "  quit\n"
+      << comment << "      Quits this program.\n"
+      << keyword << "  help\n"
+      << comment << "      Prints this help.\n"
+      << keyword << "  count\n"
+      << comment << "      Number of cities, reservoirs and pumps. Useful for debug.\n"
+      << keyword << "  maxFlowCity [city_id]\n"
+      << comment << "      Maximum amount of water that can reach each or a specific city.\n"
+      << keyword << "  needsMet\n"
+      << comment << "      Cities with not enough flow for their demand.\n"
+      << keyword << "  rm\n"
+      << keyword << "      reservoir [reservoir_id]\n"
+      << comment << "          List the compromised cities if a reservoir, specific via the optional argument, can be removed, or, if empty, all that can be removed.\n"
+      << keyword << "      pump [pump_id]\n"
+      << comment << "          List the compromised cities if a pump, specific via the optional argument, can be removed, or, if empty, all pumps that can be removed.\n"
+      << keyword << "      pipe [<any_code> <any_code>]\n"
+      << comment << "          List the compromised cities if a pipe, specific via the optional arguments, can be removed, or, if empty, all pipes that can be removed.\n"
+      << Color::clear() << std::endl;
 }
 
 void Runtime::handleQuit() {

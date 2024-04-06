@@ -7,6 +7,37 @@
 #include "data/Info.h"
 #include "../lib/Graph.h"
 
+class Color {
+public:
+  Color(uint8_t r, uint8_t g, uint8_t b): red(r),green(g),blue(b){};
+  std::string foreground() const {
+    #ifndef _WIN32
+    return "\033[38;2;" + std::to_string(red) + ";" + std::to_string(green) + ";" + std::to_string(blue) + "m";
+    #else
+    return "";
+    #endif
+  }
+
+  std::string background() const {
+    #ifndef _WIN32
+    return "\033[48;2;" + std::to_string(red) + ";" + std::to_string(green) + ";" + std::to_string(blue) + "m";
+    #else
+    return "";
+    #endif
+  }
+  static std::string clear() {
+    #ifndef _WIN32
+    return "\033[0m";
+    #else
+    return "";
+    #endif
+  }
+
+private:
+  uint8_t red;
+  uint8_t green;
+  uint8_t blue;
+};
 /**
  * @brief Auxiliary functions
  * @details This class contains static and auxiliary functions used throughout the project.
