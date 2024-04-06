@@ -1,26 +1,63 @@
 #include <cmath>
+#include <cstdint>
 #include <exception>
 #include <iostream>
 #include <ostream>
 #include <string>
 #include "Utils.h"
 
+class Color {
+public:
+  Color(uint8_t r, uint8_t g, uint8_t b): red(r),green(g),blue(b){};
+  std::string foreground() const {
+    #ifndef _WIN32
+    return "\033[38;2;" + std::to_string(red) + ";" + std::to_string(green) + ";" + std::to_string(blue) + "m";
+    #else
+    return "";
+    #endif
+  }
+
+  std::string background() const {
+    #ifndef _WIN32
+    return "\033[48;2;" + std::to_string(red) + ";" + std::to_string(green) + ";" + std::to_string(blue) + "m";
+    #else
+    return "";
+    #endif
+  }
+  static std::string clear() {
+    #ifndef _WIN32
+    return "\033[0m";
+    #else
+    return "";
+    #endif
+  }
+
+private:
+  uint8_t red;
+  uint8_t green;
+  uint8_t blue;
+};
+
 
 [[noreturn]] void panic(std::string s) {
-  std::cerr << "\033[38;2;255;100;100m[CRITICAL ERR]\e[0m " << s << std::endl;
+  auto c = Color(255,100,100);
+  std::cerr << c.foreground() << "[CRITICAL ERR] " << c.clear() << s << std::endl;
   std::exit(1);
 }
 
 void error(std::string s) {
-  std::cerr << "\033[38;2;255;100;0m[ERROR]\e[0m " << s << std::endl;
+  auto c = Color(255,100,0);
+  std::cerr << c.foreground() << "[ERROR] " << c.clear() << s << std::endl;
 }
 
 void info(std::string s) {
-  std::cerr << "\033[38;2;0;235;235m[INFO]\e[0m " << s << std::endl;
+  auto c = Color(0,235,235);
+  std::cerr << c.foreground() << "[INFO] " << c.clear() << s << std::endl;
 }
 
 void warning(std::string s) {
-  std::cerr << "\033[38;2;255;255;15m[WARNING]\e[0m " << s << std::endl;
+  auto c = Color(255,255,15);
+  std::cerr << c.foreground() <<"[WARNING] " << c.clear() << s << std::endl;
 }
 
 Edge<Info>* Utils::findEdge(Vertex<Info>* vertexA, Vertex<Info>* vertexB) {
