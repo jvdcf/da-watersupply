@@ -147,12 +147,6 @@ void Utils::EdmondsKarp(Graph<Info> *g, Vertex<Info> *s, Vertex<Info> *t) {
   if (s == nullptr || t == nullptr || s == t)
     throw std::logic_error("Invalid source and/or target vertex");
 
-  for (auto v : g->getVertexSet()) {
-    for (auto e: v->getAdj()) {
-      e->setFlow(0);
-    }
-  }
-
   while (findAugmentingPath(g, s, t)) {
     double f = findMinResidualAlongPath(s, t);
     augmentFlowAlongPath(s, t, f);

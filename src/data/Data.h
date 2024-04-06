@@ -94,7 +94,7 @@ public:
    * @brief Impact in each city of removing each pipe
    * @details Calculates the flow arriving at each city after removing each
    * pipe.
-   * @note Time complexity: O((V+E) * V * E^2) where V is the number of vertexes
+   * @note Time complexity: O(V * E^3) where V is the number of vertexes
    * and E is the number of edges in the graph.
    * @return A map with the pair of the source and destination vertexes of the
    * removed pipes and a vector of pairs with the city id and the resulting
@@ -104,7 +104,6 @@ public:
                      std::unordered_map<uint16_t, uint32_t>, pair_hash>
   removingPipes();
 
-  
 
   /**
    * @brief Cities with not enough flow for their demand
@@ -117,6 +116,25 @@ public:
    * needs for all of its customer.
    */
   std::vector<std::pair<Info, int32_t>> meetsWaterNeeds();
+
+  /**
+   * @brief Calculates the metrics of the network
+   * @details Calculates the average, the variance and the maximum value
+   * of the difference between the edges capacity and the flow.
+   * @note Time complexity: O(E) where E is the number of edges in the graph.
+   * @return a tuple with the average, the variance and the maximum value.
+   */
+  std::tuple<double, double, double> pipeMetrics();
+
+  /**
+   * @brief Balances the graph
+   * @details Redistribution of the flow from edges with less remaining space
+   * to edges with more remaining space.
+   * @note Time complexity: O(V * E^2) where V is the number of vertexes and E is the number of edges in the graph.
+   * @return a pair of tuples with the average, the variance and the maximum value,
+   * before and after the balance.
+   */
+  std::pair<std::tuple<double, double, double>, std::tuple<double, double, double>> balanceGraph();
 };
 
 #endif // DA2324_PRJ1_G163_DATA_H

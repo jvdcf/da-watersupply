@@ -275,6 +275,14 @@ void Runtime::handleNeedsMet() {
   return;
 }
 
+void Runtime::handleBalanceGraph() {
+    auto result = data->balanceGraph();
+    std::cout << "Average: " << std::get<0>(result.first) << " -> " << std::get<0>(result.second) << '\n';
+    std::cout << "Variance: " << std::get<1>(result.first) << " -> " << std::get<1>(result.second) << '\n';
+    std::cout << "Max difference:" << std::get<2>(result.first) << " -> " << std::get<2>(result.second) << '\n';
+    return;
+}
+
 void Runtime::processArgs(std::string args) {
   POption<Command> cmd_res = parse_cmd()(args);
   if (!cmd_res.has_value())
@@ -300,6 +308,8 @@ void Runtime::processArgs(std::string args) {
     return handleRmPump(cmd.args);
   case Command::RmPipe:
     return handleRmPipe(cmd.args);
+  case Command::Balance:
+      return handleBalanceGraph();
   default:
     error("AAAAAAAAAAAAAAAAAAAAAAA");
     break;
