@@ -101,11 +101,10 @@ void Runtime::handleRmPump(std::vector<CommandLineValue> args) {
     bool is_virgin = true;
     for (auto vx : data->getGraph().getVertexSet()) {
       if (vx->getInfo().getKind() == Info::Kind::Reservoir) {
-        auto id = vx->getInfo().getId();
-        auto res = data->removePump(id);
+        auto res = data->removeSite(vx);
         if (res.empty()) {
           is_virgin = false;
-          std::cout << "If the pump " << id
+          std::cout << "If the pump " << vx->getInfo().getId()
                     << " is removed, no changes are observed" << std::endl;
         }
       }
@@ -115,9 +114,10 @@ void Runtime::handleRmPump(std::vector<CommandLineValue> args) {
     return;
   }
   uint32_t id = args[0].getInt().value();
-  if (Utils::findVertex(data->getGraph(), Info::Kind::Reservoir, id) == nullptr)
+  auto tgt = Utils::findVertex(data->getGraph(), Info::Kind::Pump, id);
+  if (tgt == nullptr)
     return;
-  auto res = data->removePump(id);
+  auto res = data->removeSite(tgt);
   if (res.empty()) {
     std::cout << "If the pump " << id << " is removed, no changes are observed"
               << std::endl;
@@ -230,12 +230,11 @@ void Runtime::handleRmReservoir(std::vector<CommandLineValue> args) {
     bool is_virgin = true;
     for (auto vx : data->getGraph().getVertexSet()) {
       if (vx->getInfo().getKind() == Info::Kind::Reservoir) {
-        auto id = vx->getInfo().getId();
-        auto res = data->removeReservoir(id);
+        auto res = data->removeSite(vx);
         if (res.empty()) {
           is_virgin = false;
-          std::cout << "If the reservoir " << id
-                    << " is removed, no changes are observed" << std::endl;
+          std::cout << "If the reservoir " << vx->getInfo().getId()
+            << " is removed, no changes are observed" << std::endl;
         }
       }
     }
@@ -244,9 +243,10 @@ void Runtime::handleRmReservoir(std::vector<CommandLineValue> args) {
     return;
   }
   uint32_t id = args[0].getInt().value();
-  if (Utils::findVertex(data->getGraph(), Info::Kind::Reservoir, id) == nullptr)
+  auto tgt = Utils::findVertex(data->getGraph(), Info::Kind::Reservoir, id);
+  if (tgt == nullptr) 
     return;
-  auto res = data->removeReservoir(id);
+  auto res = data->removeSite(tgt);
   if (res.empty()) {
     std::cout << "If the reservoir " << id
               << " is removed, no changes are observed" << std::endl;
