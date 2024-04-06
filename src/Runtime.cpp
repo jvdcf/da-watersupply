@@ -48,6 +48,8 @@ void Runtime::printHelp() {
       << "      Maximum amount of water that can reach each or a specific city.\n"
       << "  needsMet\n"
       << "      Cities with not enough flow for their demand.\n"
+      << "  balanceGraph\n"
+      << "      Redistribution of the flow from edges with less remaining space to edges with more remaining space.\n"
       << "  rm\n"
       << "      reservoir [reservoir_id]\n"
       << "          List the compromised cities if a reservoir, specific via the optional argument, can be removed, or, if empty, all that can be removed.\n"
