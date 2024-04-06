@@ -285,7 +285,7 @@ std::vector<std::tuple<uint16_t, uint32_t, uint32_t>>
     return {}; 
   }
   if (to_1_2 != nullptr) to_1_2->setSelected(true);
-  if (to_2_1 != nullptr) to_1_2->setSelected(true);
+  if (to_2_1 != nullptr) to_2_1->setSelected(true);
 
 }
 
