@@ -173,51 +173,14 @@ std::unordered_map<uint16_t, uint32_t> Data::maxFlowCity() {
 }
 
 std::vector<std::tuple<uint16_t, uint32_t, uint32_t>>
-Data::removeReservoir(uint16_t id) {
+Data::removeSite(Vertex<Info>* tgt) {
   auto all_before = maxFlowCity();
-  Vertex<Info> *to_be_deactivated;
-  for (auto vx : this->getGraph().getVertexSet()) {
-    if (vx->getInfo().getKind() == Info::Kind::Reservoir &&
-        vx->getInfo().getId() == id) {
-      to_be_deactivated = vx;
-    }
-  }
-  if (to_be_deactivated == nullptr)
-    panic("removeReservoir is broken?");
-  Info inf = to_be_deactivated->getInfo();
+  Info inf = tgt->getInfo();
   inf.disable();
-  to_be_deactivated->setInfo(inf);
+  tgt->setInfo(inf);
   auto all_after = maxFlowCity();
   inf.enable();
-  to_be_deactivated->setInfo(inf);
-  std::vector<std::tuple<uint16_t, uint32_t, uint32_t>> res;
-  for (auto [bid, flow] : all_before) {
-    uint32_t new_flow = all_after.at(bid);
-    if (new_flow < flow) {
-      res.push_back(std::tuple(bid, flow, new_flow));
-    }
-  }
-  return res;
-}
-
-std::vector<std::tuple<uint16_t, uint32_t, uint32_t>>
-Data::removePump(uint16_t id) {
-  auto all_before = maxFlowCity();
-  Vertex<Info> *to_be_deactivated;
-  for (auto vx : this->getGraph().getVertexSet()) {
-    if (vx->getInfo().getKind() == Info::Kind::Pump &&
-        vx->getInfo().getId() == id) {
-      to_be_deactivated = vx;
-    }
-  }
-  if (to_be_deactivated == nullptr)
-    panic("removePump is broken?");
-  Info inf = to_be_deactivated->getInfo();
-  inf.disable();
-  to_be_deactivated->setInfo(inf);
-  auto all_after = maxFlowCity();
-  inf.enable();
-  to_be_deactivated->setInfo(inf);
+  tgt->setInfo(inf);
   std::vector<std::tuple<uint16_t, uint32_t, uint32_t>> res;
   for (auto [bid, flow] : all_before) {
     uint32_t new_flow = all_after.at(bid);
@@ -250,47 +213,6 @@ std::vector<std::pair<Info, int32_t>> Data::meetsWaterNeeds() {
   Utils::removeSuperSink(&g, superSink);
   return result;
 }
-
-std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>>
-Data::removingPumps() {
-  std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>>
-      pumpImpactMap;
-  for (Vertex<Info> *v : g.getVertexSet()) {
-    if (v->getInfo().getKind() == Info::Kind::Pump) {
-      Info fu = v->getInfo();
-      fu.disable();
-      std::unordered_map<uint16_t, uint32_t> newFlows = maxFlowCity();
-      pumpImpactMap[v->getInfo()] = newFlows;
-      fu.enable();
-      v->setInfo(fu);
-    }
-  }
-  return pumpImpactMap;
-}
-
-std::vector<std::tuple<uint16_t, uint32_t, uint32_t>>
-  Data::removePipe(std::string id1, std::string id2) {
-  auto [k1, c1] = Utils::parseCode(id1);
-  auto [k2, c2] = Utils::parseCode(id2);
-  Vertex<Info>* v1 = Utils::findVertex(this->getGraph(), k1, c1);
-  Vertex<Info>* v2 = Utils::findVertex(this->getGraph(), k2, c2);
-  if (v1 == nullptr || v2 == nullptr) {
-    error("No such vertices " + id1 + " " + id2 + ".");
-    return {};
-  }
-  Edge<Info>* to_1_2 = Utils::findEdge(v1, v2);
-  Edge<Info>* to_2_1 = Utils::findEdge(v2, v1);
-  if (nullptr == to_2_1 && to_1_2 == nullptr) {
-    error("There are no edges between " + id1 + " and " + id2 + ".");
-    return {}; 
-  }
-  if (to_1_2 != nullptr) to_1_2->setSelected(true);
-  if (to_2_1 != nullptr) to_2_1->setSelected(true);
-
-}
-
-
-
 
 // For each examined pipeline, list the affected cities displaying their codes
 // and water supply in deficit.

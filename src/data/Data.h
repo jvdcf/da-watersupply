@@ -81,17 +81,14 @@ public:
   std::unordered_map<uint16_t, uint32_t> maxFlowCity();
 
   /**
-   * @brief Impact in each city of removing each pump station
-   * @details Calculates the flow arriving at each city after inactivating each
-   * pump station.
-   * @note Time complexity: O(P *V * E^2) where V is the number of vertexes, E
-   * is the number of edges in the graph, and P is the number of pump stations.
-   * @return A map with the Info of the removed pump stations and a vector of
-   * pairs with the city id and the resulting flow.
-   */
-  std::unordered_map<Info, std::unordered_map<uint16_t, uint32_t>>
-  removingPumps();
-
+   * @brief Impact in each city of removing a site (reservoir or pump)
+   * @details Calculates the flow arriving at each city after inactivating a
+   * site (reservoir or pump).
+   * @return vector with the affected cities.
+   * @note O(V * E^2) 
+   **/
+  std::vector<std::tuple<uint16_t, uint32_t, uint32_t>>
+  removeSite(Vertex<Info>* tgt);
   
   /**
    * @brief Impact in each city of removing each pipe
@@ -107,16 +104,7 @@ public:
                      std::unordered_map<uint16_t, uint32_t>, pair_hash>
   removingPipes();
 
-  std::vector<std::tuple<uint16_t, uint32_t, uint32_t>>
-  removeReservoir(uint16_t id);
   
-  std::vector<std::tuple<uint16_t, uint32_t, uint32_t>>
-  removePump(uint16_t id);
-
-  std::vector<std::tuple<uint16_t, uint32_t, uint32_t>>
-  removePipe(std::string id1, std::string id2);
-
-
 
   /**
    * @brief Cities with not enough flow for their demand
