@@ -7,20 +7,20 @@
 
 
 [[noreturn]] void panic(std::string s) {
-  std::cerr << "\e[38;2;255;100;100m[CRITICAL ERR]\e[0m " << s << std::endl;
+  std::cerr << "\033[38;2;255;100;100m[CRITICAL ERR]\e[0m " << s << std::endl;
   std::exit(1);
 }
 
 void error(std::string s) {
-  std::cerr << "\e[38;2;255;100;0m[ERROR]\e[0m " << s << std::endl;
+  std::cerr << "\033[38;2;255;100;0m[ERROR]\e[0m " << s << std::endl;
 }
 
 void info(std::string s) {
-  std::cerr << "\e[38;2;0;235;235m[INFO]\e[0m " << s << std::endl;
+  std::cerr << "\033[38;2;0;235;235m[INFO]\e[0m " << s << std::endl;
 }
 
 void warning(std::string s) {
-  std::cerr << "\e[38;2;255;255;15m[WARNING]\e[0m " << s << std::endl;
+  std::cerr << "\033[38;2;255;255;15m[WARNING]\e[0m " << s << std::endl;
 }
 
 Edge<Info>* Utils::findEdge(Vertex<Info>* vertexA, Vertex<Info>* vertexB) {
