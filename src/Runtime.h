@@ -138,6 +138,7 @@ public:
     RmPipe,
     RmPump,
     NeedsMet,
+    Balance,
   } command;
   std::vector<CommandLineValue> args;
   Command(Cmd typ, std::vector<CommandLineValue> args)
@@ -273,6 +274,12 @@ public:
     return alt(std::vector({reservoir, reservoir_sole, pump, pump_sole, pipe, pipe_sole}));
   }
 
+    static Parser<Command> parse_balance() {
+        return ws().pair(string_p("balanceGraph")).pair(ws()).pmap<Command>([](auto inp) {
+            return Command(Command::Balance, {});
+        });
+    }
+
   static Parser<Command> parse_cmd() {
     return alt(std::vector({
       parse_help(),
@@ -281,6 +288,7 @@ public:
       parse_needsMet(),
       parse_maxflowcity(),
       parse_rm(),
+      parse_balance(),
     }));
   }
 
@@ -292,6 +300,7 @@ public:
   void handleRmReservoir(std::vector<CommandLineValue> args);
   void handleRmPump(std::vector<CommandLineValue> args);
   void handleRmPipe(std::vector<CommandLineValue> args);
+  void handleBalanceGraph();
 };
 
 #endif // DA2324_PRJ1_G163_RUNTIME_H

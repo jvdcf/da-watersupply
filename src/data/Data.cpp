@@ -12,6 +12,11 @@ Data::Data(Csv cities, Csv pipes, Csv reservoirs, Csv stations) {
   setReservoirs(std::move(reservoirs));
   setStations(std::move(stations));
   setPipes(std::move(pipes));
+    for (auto v : g.getVertexSet()) {
+        for (auto e: v->getAdj()) {
+            e->setFlow(0);
+        }
+    }
 }
 
 void Data::setCities(Csv cities) {
@@ -274,7 +279,83 @@ Data::removingPipes() {
   return pipeImpactMap;
 }
 
-// For each city, determine which pipelines, if ruptured, i.e., with a null flow
-// capacity,
-//  would make it impossible to deliver the desired amount of water to a given
-//  city.
+std::tuple<double, double, double> Data::pipeMetrics() {
+  double avg = 0;
+  double variance = 0;
+  double max = 0;
+  int count = 0;
+  for (Vertex<Info> *v : g.getVertexSet()) {
+    for (Edge<Info> *e : v->getAdj()) {
+      if (e->getFlow() > 0) {
+        double diff = e->getWeight() - e->getFlow();
+        avg += diff;
+        max = std::max(max, diff);
+        count++;
+      }
+    }
+  }
+  avg /= count;
+    for (Vertex<Info> *v : g.getVertexSet()) {
+        for (Edge<Info> *e : v->getAdj()) {
+            if (e->getFlow() > 0) {
+                double diff = e->getWeight() - e->getFlow();
+                variance += (avg-diff)*(avg-diff);
+            }
+        }
+    }
+  variance /= count;
+  return std::make_tuple(avg, variance, max);
+}
+
+std::pair<std::tuple<double, double, double>, std::tuple<double, double, double>> Data::balanceGraph() {
+    maxFlowCity();
+
+    // initial metrics
+    auto [avg, variance, max] = pipeMetrics();
+
+    std::vector<Edge<Info>*> edges;
+    // 1. Coletar todas as arestas com fluxo positivo
+    for (auto v : g.getVertexSet()) {
+        for (auto e : v->getAdj()) {
+            if (e->getFlow() > 0) {
+                edges.push_back(e);
+            }
+        }
+    }
+    double delta = sqrt(variance);
+    for (int i=0; i<10; i++) {
+        // 2. Ordenar as arestas pelo espaço restante (cap - fluxo)
+        std::sort(edges.begin(), edges.end(), [](Edge<Info>* a, Edge<Info>* b) {
+            return (a->getWeight() - a->getFlow()) < (b->getWeight() - b->getFlow());
+        });
+
+        // 3. Tentar redistribuir o fluxo
+        for (int i = 0; i < edges.size(); i++) {
+            auto edge = edges[i];
+            if (edge->getFlow() >= delta) {
+                // Procura por uma aresta com espaço suficiente para transferir parte do fluxo
+                for (int j = edges.size() - 1; j > i; j--) {
+                    auto targetEdge = edges[j];
+                    double targetAvailableSpace = targetEdge->getWeight() - targetEdge->getFlow();
+
+                    if (targetAvailableSpace > 0) {
+                        // Determina quanto de fluxo pode ser transferido
+                        double transferableFlow = std::min(delta, targetAvailableSpace);
+
+                        edge->setFlow(edge->getFlow() - transferableFlow);
+                        targetEdge->setFlow(targetEdge->getFlow() + transferableFlow);
+
+                        break;
+                    }
+                }
+            }
+        }
+        // new metrics
+        auto [avg2, variance2, max2] = pipeMetrics();
+        delta = sqrt(variance2);
+    }
+    auto [avg2, variance2, max2] = pipeMetrics();
+    return std::make_pair(std::make_tuple(avg, variance, max), std::make_tuple(avg2, variance2, max2));
+}
+
+
