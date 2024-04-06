@@ -50,6 +50,8 @@ void Runtime::printHelp() {
       << comment << "      Maximum amount of water that can reach each or a specific city.\n"
       << keyword << "  needsMet\n"
       << comment << "      Cities with not enough flow for their demand.\n"
+      << keyword << "  balanceGraph\n"
+      << comment << "      Redistribution of the flow from edges with less remaining space to edges with more remaining space.\n"
       << keyword << "  rm\n"
       << keyword << "      reservoir [reservoir_id]\n"
       << comment << "          List the compromised cities if a reservoir, specific via the optional argument, can be removed, or, if empty, all that can be removed.\n"
@@ -277,6 +279,14 @@ void Runtime::handleNeedsMet() {
   return;
 }
 
+void Runtime::handleBalanceGraph() {
+    auto result = data->balanceGraph();
+    std::cout << "Average: " << std::get<0>(result.first) << " -> " << std::get<0>(result.second) << '\n';
+    std::cout << "Variance: " << std::get<1>(result.first) << " -> " << std::get<1>(result.second) << '\n';
+    std::cout << "Max difference:" << std::get<2>(result.first) << " -> " << std::get<2>(result.second) << '\n';
+    return;
+}
+
 void Runtime::processArgs(std::string args) {
   POption<Command> cmd_res = parse_cmd()(args);
   if (!cmd_res.has_value())
@@ -302,6 +312,8 @@ void Runtime::processArgs(std::string args) {
     return handleRmPump(cmd.args);
   case Command::RmPipe:
     return handleRmPipe(cmd.args);
+  case Command::Balance:
+      return handleBalanceGraph();
   default:
     error("AAAAAAAAAAAAAAAAAAAAAAA");
     break;

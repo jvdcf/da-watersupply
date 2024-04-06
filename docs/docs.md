@@ -46,7 +46,7 @@ make -j$(nproc)
 
 1. Open the project folder in CLion.
 2. Create a CMake profile with the build type set to `Release`.
-3. Select the configuration `DA2324_PRJ1_G163` already created.  
+3. Select the configuration `SmallDataSet` or `LargeDataSet` already created.  
    _or_  
    Create a new configuration with the correct program arguments and working directory.  
    For example:
