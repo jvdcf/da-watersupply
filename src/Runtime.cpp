@@ -3,6 +3,8 @@
 #include "Utils.h"
 #include <cstdint>
 #include <exception>
+#include <iomanip>
+#include <ios>
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -36,25 +38,24 @@ Runtime::Runtime(Data *d) { this->data = d; }
 void Runtime::printHelp() {
   std::cout
       << "Available commands:\n"
-      << "quit\n"
-      << "    Quits this program.\n"
-      << "help\n"
-      << "    Prints this help.\n"
-      << "count\n"
-      << "    Number of cities, reservoirs and pumps. Useful for debug.\n"
-      << "maxFlowCity [cityId]\n"
-      << "    Maximum amount of water that can reach each or a specific city.\n"
-      << "removingPumps [pumpId]\n"
-      << "    Removable pump stations, which won't affect the flow of any "
-         "city.\n"
-      << "    Shows the impact on cities if the specified pump were to be "
-         "removed.\n"
-      << "removingPipes [srcCode] [destCode]\n"
-      << "    Removable pipelines, which won't affect the flow of any city.\n"
-      << "    Shows the impact on cities if the specified pipeline were to be "
-         "removed.\n"
-      << "needsMet\n"
-      << "    Cities with not enough flow for their demand" << std::endl;
+      << "  quit\n"
+      << "      Quits this program.\n"
+      << "  help\n"
+      << "      Prints this help.\n"
+      << "  count\n"
+      << "      Number of cities, reservoirs and pumps. Useful for debug.\n"
+      << "  maxFlowCity [city_id]\n"
+      << "      Maximum amount of water that can reach each or a specific city.\n"
+      << "  needsMet\n"
+      << "      Cities with not enough flow for their demand.\n"
+      << "  rm\n"
+      << "      reservoir [reservoir_id]\n"
+      << "          List the compromised cities if a reservoir, specific via the optional argument, can be removed, or, if empty, all that can be removed.\n"
+      << "      pump [pump_id]\n"
+      << "          List the compromised cities if a pump, specific via the optional argument, can be removed, or, if empty, all pumps that can be removed.\n"
+      << "      pipe [<any_code> <any_code>]\n"
+      << "          List the compromised cities if a pipe, specific via the optional arguments, can be removed, or, if empty, all pipes that can be removed.\n"
+      << std::endl;
 }
 
 void Runtime::handleQuit() {
@@ -109,7 +110,8 @@ void Runtime::handleRmPump(std::vector<CommandLineValue> args) {
         }
       }
     }
-    if (is_virgin) warning("There is not any redundancy in the network!");
+    if (is_virgin)
+      warning("There is not any redundancy in the network!");
     return;
   }
   uint32_t id = args[0].getInt().value();
@@ -117,8 +119,8 @@ void Runtime::handleRmPump(std::vector<CommandLineValue> args) {
     return;
   auto res = data->removePump(id);
   if (res.empty()) {
-    std::cout << "If the pump " << id
-              << " is removed, no changes are observed" << std::endl;
+    std::cout << "If the pump " << id << " is removed, no changes are observed"
+              << std::endl;
     return;
   }
   std::cout << "The following cities would be affected:" << std::endl;
@@ -138,27 +140,22 @@ void Runtime::handleRmPipe(std::vector<CommandLineValue> args) {
     error("No pipes found.\n");
     return;
   }
-  if (!args.empty()) {
+  if (args.size() == 2) {
     Vertex<Info> *vertexA;
     Vertex<Info> *vertexB;
     std::string codeA;
     std::string codeB;
     try {
-      std::pair<Info::Kind, uint32_t> parsedA =
-          Utils::parseCode(args[0].getStr().value());
+      codeA = args[0].getStr().value();
+      codeB = args[1].getStr().value();
+      auto parsedA = Utils::parseCode(codeA);
+      auto parsedB = Utils::parseCode(codeB);
       vertexA =
           Utils::findVertex(data->getGraph(), parsedA.first, parsedA.second);
-      codeA = Utils::parseId(vertexA->getInfo().getKind(),
-                             vertexA->getInfo().getId());
-
-      std::pair<Info::Kind, uint32_t> parsedB =
-          Utils::parseCode(args[1].getStr().value());
       vertexB =
           Utils::findVertex(data->getGraph(), parsedB.first, parsedB.second);
-      codeB = Utils::parseId(vertexB->getInfo().getKind(),
-                             vertexB->getInfo().getId());
     } catch (const std::exception &e) {
-      std::cerr << "ERROR: Invalid codes.\n";
+      error("Invalid codes");
       return;
     }
 
@@ -166,18 +163,16 @@ void Runtime::handleRmPipe(std::vector<CommandLineValue> args) {
     auto it = removingPipesImpact.find(pipeId);
 
     if (it == removingPipesImpact.end()) {
-      std::cout << "The key " << codeA << " to " << codeB
-                << " was not found.\n";
+      info("The key " + codeA + " to " + codeB + " was not found.");
       auto edge = Utils::findEdge(vertexA, vertexB);
       if (edge != nullptr) {
         if (edge->getReverse() != nullptr) { // the edge is bidirectional
-          std::cout << "Bidirectional edge found. Trying reverse order.\n";
+          info("Bidirectional edge found. Trying reverse order.");
           pipeId = std::make_pair(codeB, codeA);
           it = removingPipesImpact.find(pipeId);
         }
       } else
-        std::cerr << "ERROR: Pipeline between " << codeA << " and " << codeB
-                  << " not found.\n";
+        error("Pipeline between " + codeA + " and " + codeB + " not found.");
     }
     if (it != removingPipesImpact.end()) {
       std::cout << "Impact of removing Pipeline from " << codeA << " to "
@@ -191,12 +186,15 @@ void Runtime::handleRmPipe(std::vector<CommandLineValue> args) {
             [cityId](const auto &pair) { return pair.first == cityId; });
         int difference = newFlow - itCity->second;
         if (difference != 0)
-          std::cout << Utils::parseId(Info::Kind::City, cityFlow.first)
-                    << "  |  " << itCity->second << "         "
-                    << cityFlow.second << "        " << difference << std::endl;
+          std::cout << std::setw(4)
+                    << Utils::parseId(Info::Kind::City, cityFlow.first)
+                    << std::setw(0) << " |" << std::setw(9) << itCity->second
+                    << std::setw(0) << " |" << std::setw(9) << cityFlow.second
+                    << std::setw(0) << " |" << std::setw(10) << std::showpos << difference
+                    << std::endl;
       }
     }
-  } else if (args.size() == 1) {
+  } else if (args.empty()) {
     int removablePipesCount = 0;
     std::cout << "Removable pipelines without impact:\n";
     for (const auto &[pipeId, cityFlows] : removingPipesImpact) {
@@ -241,7 +239,8 @@ void Runtime::handleRmReservoir(std::vector<CommandLineValue> args) {
         }
       }
     }
-    if (is_virgin) warning("There is not any redundancy in the network!");
+    if (is_virgin)
+      warning("There is not any redundancy in the network!");
     return;
   }
   uint32_t id = args[0].getInt().value();
