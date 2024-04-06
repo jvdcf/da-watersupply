@@ -9,13 +9,8 @@
 Parser<CsvValues> parse_int() {
   return verifies(isdigit).take_while().recognize().pmap<CsvValues>(
       [](auto inp) {
-        try {
           int64_t d = std::stoll(inp);
           return CsvValues::Int(d);
-        } catch (std::exception &e) {
-          std::cout << "Failed to parse int: " << inp << std::endl;
-          return CsvValues::Nil();
-        }
       });
 }
 
@@ -23,13 +18,8 @@ Parser<CsvValues> parse_flt() {
   auto fst = verifies(isdigit).take_while();
   auto final =
       fst.pair(char_p('.')).pair(fst).recognize().pmap<CsvValues>([](auto inp) {
-        try {
           double d = std::stod(inp);
           return CsvValues::Flt(d);
-        } catch (std::exception &e) {
-          std::cout << "Failed to parse flt: " << inp << std::endl;
-          return CsvValues::Nil();
-        }
       });
   return final;
 }

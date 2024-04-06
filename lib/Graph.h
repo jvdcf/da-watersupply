@@ -21,7 +21,7 @@ class Edge;
 template <class T>
 class Vertex {
 public:
-    Vertex(T in);
+    Vertex(T in, bool active=true);
     bool operator<(Vertex<T> & vertex) const; // // required by MutablePriorityQueue
 
     T getInfo() const;
@@ -36,6 +36,7 @@ public:
     void setInfo(T info);
     void setVisited(bool visited);
     void setProcesssing(bool processing);
+    void setActive(bool active);
     void setIndegree(unsigned int indegree);
     void setDist(double dist);
     void setPath(Edge<T> *path);
@@ -76,6 +77,7 @@ public:
     Edge<T> *getReverse() const;
     double getFlow() const;
 
+    void setWeight(double weight);
     void setSelected(bool selected);
     void setReverse(Edge<T> *reverse);
     void setFlow(double flow);
@@ -107,7 +109,7 @@ public:
      *  Adds a vertex with a given content or info (in) to a graph (this).
      *  Returns true if successful, and false if a vertex with that content already exists.
      */
-    bool addVertex(const T &in);
+    bool addVertex(const T &in, bool active=true);
     bool removeVertex(const T &in);
 
     /*
@@ -151,7 +153,7 @@ void deleteMatrix(double **m, int n);
 /************************* Vertex  **************************/
 
 template <class T>
-Vertex<T>::Vertex(T in): info(in) {}
+Vertex<T>::Vertex(T in, bool active): info(in) {}
 /*
  * Auxiliary function to add an outgoing edge to a vertex (this),
  * with a given destination vertex (d) and edge weight (w).
@@ -262,6 +264,11 @@ void Vertex<T>::setProcesssing(bool processing) {
 }
 
 template <class T>
+void Vertex<T>::setActive(bool active) {
+    this->active = active;
+}
+
+template <class T>
 void Vertex<T>::setIndegree(unsigned int indegree) {
     this->indegree = indegree;
 }
@@ -328,6 +335,11 @@ double Edge<T>::getFlow() const {
 }
 
 template <class T>
+void Edge<T>::setWeight(double weight) {
+    this->weight = weight;
+}
+
+template <class T>
 void Edge<T>::setSelected(bool selected) {
     this->selected = selected;
 }
@@ -380,10 +392,10 @@ int Graph<T>::findVertexIdx(const T &in) const {
  *  Returns true if successful, and false if a vertex with that content already exists.
  */
 template <class T>
-bool Graph<T>::addVertex(const T &in) {
+bool Graph<T>::addVertex(const T &in, bool active) {
     if (findVertex(in) != nullptr)
         return false;
-    vertexSet.push_back(new Vertex<T>(in));
+    vertexSet.push_back(new Vertex<T>(in, active));
     return true;
 }
 

@@ -1,4 +1,5 @@
 #include "Parser.h"
+#include <cctype>
 #include <optional>
 #include <tuple>
 
@@ -46,3 +47,8 @@ Parser<char> verifies(std::function<bool(char)> f) {
     return {};
   });
 }
+
+Parser<std::string> ws() {
+  return alt(std::vector({verifies(isspace).take_while().recognize(), null<std::string>()}));
+}
+

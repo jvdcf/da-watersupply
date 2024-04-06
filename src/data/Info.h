@@ -124,6 +124,15 @@ public:
    */
   std::optional<std::string> getMunicipality() const;
 
+  /// Get active status
+  bool isActive() const;
+ 
+  /// Disable (is_active = false) 
+  void disable();
+  /// Enable (is_active = true)
+  void enable();
+
+
   /**
    * @brief Equality operator
    */
@@ -136,7 +145,17 @@ private:
   uint16_t id;
   /// Data for the Vertex (ReservoirData, PumpData or CityData)
   std::variant<ReservoirData, PumpData, CityData> data;
+  /// Is active boolean
+  bool is_active;
 };
 
+/// Hash function for Info
+namespace std {
+    template<> struct hash<Info> {
+        size_t operator()(const Info& info) const noexcept {
+            return hash<uint16_t>()(info.getId()) ^ (hash<int>()(info.getKind()) << 1);
+        }
+    };
+}
 
 #endif //DA2324_PRJ1_G163_INFO_H
