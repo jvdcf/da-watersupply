@@ -160,6 +160,8 @@ std::unordered_map<uint16_t, uint32_t> Data::maxFlowCity() {
   Vertex<Info> *superSource = Utils::createSuperSource(&g);
   Vertex<Info> *superSink = Utils::createSuperSink(&g);
 
+  for (auto v: g.getVertexSet()) for (auto e: v->getAdj()) e->setFlow(0);
+
   Utils::EdmondsKarp(&g, superSource, superSink);
 
   std::unordered_map<uint16_t, uint32_t> result;
