@@ -59,6 +59,8 @@ void Runtime::printHelp() {
       << comment << "          List the compromised cities if a pump, specific via the optional argument, can be removed, or, if empty, all pumps that can be removed.\n"
       << keyword << "      pipe [<any_code> <any_code>]\n"
       << comment << "          List the compromised cities if a pipe, specific via the optional arguments, can be removed, or, if empty, all pipes that can be removed.\n"
+      << keyword << "  balanceGraph\n"
+      << comment << "      Redistribution of the flow from edges with less remaining space to edges with more remaining space.\n"
       << Color::clear() << std::endl;
 }
 
