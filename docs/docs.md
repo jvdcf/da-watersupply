@@ -24,12 +24,16 @@ Make sure that the csv files are in the correct format and that the directory pa
 > **Note:** The csv files can have different names, for example: `Reservoir.csv` can be named `Reservoirs_Madeira.csv`.
 > Despite this, it is recommended to keep the original names.
 
-### Using the shell script
+### Using the shell script (Linux only)
 1. Make sure that the C / C++ dependencies are installed on your system.
-2. Execute the script `run.sh` (located in the directory of the project) in the terminal.
+2. Execute the script `run.sh` (located in the directory of the project) in the terminal, giving the path to the directory containing the csv files as an argument.  
+   For example:
+   ```bash
+   ./run.sh dataset/LargeDataSet
+   ```
 
-> **Note:** The script assumes that the csv files are in the folder `dataset/LargeDataSet` and their names were not changed.  
-> Feel free to change the script to suit your needs.
+> **Warning:** Make sure the script has the correct permissions to be executed and the package `rlwrap` is installed.
+> **Note:** Feel free to change the script to suit your needs.
 
 ### Using the terminal
 

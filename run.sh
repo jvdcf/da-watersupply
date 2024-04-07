@@ -8,16 +8,17 @@ txtpur=$(tput setaf 5) # Purple
 txtcyn=$(tput setaf 6) # Cyan
 txtwht=$(tput setaf 7) # White
 
-dir=$(pwd)
 echo -e "${txtgrn}[1/3] Converting CMake to Makefile ${txtwht}"
 mkdir -p bin
 cd bin/
 cmake -DCMAKE_BUILD_TYPE=Release ../CMakeLists.txt
-cd $dir
 
 echo -e "${txtgrn}[2/3] Compiling DA2324_PRJ1_G163 ${txtwht}"
 make -j$(nproc)
 
+cd ..
 clear
+
 echo -e "${txtgrn}[3/3] Executing DA2324_PRJ1_G163 ${txtwht}"
-sh -c "rlwrap ./DA2324_PRJ1_G163 $(pwd)/$1" 
+sh -c "rlwrap ./bin/DA2324_PRJ1_G163 $(pwd)/$1"
+
